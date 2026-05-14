@@ -38,6 +38,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { background: #050505; font-family: 'Inter', sans-serif; color: #ffffff; margin: 0; overflow-x: hidden; }
@@ -106,6 +107,11 @@
 
     .text-gradient { background: linear-gradient(135deg, #fff 0%, #9ca3af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
+    /* Métricas tabs */
+    .met-tab { transition: all 0.15s ease; }
+    .active-met-tab { background: #fff; color: #050505; font-weight: 700; }
+    .met-panel { animation: fadeIn 0.2s ease-out; }
+
     /* IA Assistant styles */
     .ai-tool-card { transition: all 0.2s ease; border: 1px solid #1a1a1a; }
     .ai-tool-card:hover { border-color: #2a2a2a; background: #111; }
@@ -159,6 +165,10 @@
       <button onclick="navigate('pipeline')" id="nav-pipeline" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#6a6a6a]">
         <i data-lucide="kanban" class="w-4 h-4 flex-shrink-0"></i>
         <span>Pipeline</span>
+      </button>
+      <button onclick="navigate('metricas')" id="nav-metricas" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#6a6a6a]">
+        <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0"></i>
+        <span>Métricas</span>
       </button>
 
       <div class="pt-4 pb-1 px-3">
@@ -491,6 +501,286 @@
         </div>
       </div>
 
+      <!-- ===================== MÉTRICAS PAGE ===================== -->
+      <div id="page-metricas" class="hidden p-8 animate-fade-in">
+
+        <!-- Tabs -->
+        <div class="flex items-center gap-1 mb-8 bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-1 w-fit">
+          <button onclick="setMetTab('visao')" id="met-tab-visao" class="met-tab active-met-tab px-4 py-2 rounded-lg text-xs font-semibold transition-all">Visão Geral</button>
+          <button onclick="setMetTab('custos')" id="met-tab-custos" class="met-tab px-4 py-2 rounded-lg text-xs font-semibold transition-all text-[#555]">Custos & ROI</button>
+          <button onclick="setMetTab('erros')" id="met-tab-erros" class="met-tab px-4 py-2 rounded-lg text-xs font-semibold transition-all text-[#555]">Análise de Erros</button>
+          <button onclick="setMetTab('aprendizados')" id="met-tab-aprendizados" class="met-tab px-4 py-2 rounded-lg text-xs font-semibold transition-all text-[#555]">Aprendizados</button>
+        </div>
+
+        <!-- ── TAB: VISÃO GERAL ── -->
+        <div id="met-visao" class="met-panel">
+
+          <!-- 10 Metric Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-8">
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Total Leads</div>
+              <div id="m-total" class="text-2xl font-bold text-white">0</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Contatados</div>
+              <div id="m-contatados" class="text-2xl font-bold text-[#60a5fa]">0</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Respostas</div>
+              <div id="m-respostas" class="text-2xl font-bold text-[#a78bfa]">0</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Reuniões</div>
+              <div id="m-reunioes" class="text-2xl font-bold text-[#fb923c]">0</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Fechados</div>
+              <div id="m-fechados" class="text-2xl font-bold text-[#4ade80]">0</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Perdidos</div>
+              <div id="m-perdidos" class="text-2xl font-bold text-[#f87171]">0</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Taxa Resposta</div>
+              <div id="m-tx-resposta" class="text-2xl font-bold text-white">0%</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Taxa Reunião</div>
+              <div id="m-tx-reuniao" class="text-2xl font-bold text-white">0%</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Taxa Fechamento</div>
+              <div id="m-tx-fechamento" class="text-2xl font-bold text-white">0%</div>
+            </div>
+            <div class="stat-card bg-[#0a0a0a] rounded-xl p-4">
+              <div class="text-[10px] text-[#444] font-semibold uppercase tracking-widest mb-2">Propostas</div>
+              <div id="m-propostas" class="text-2xl font-bold text-[#facc15]">0</div>
+              <div class="text-[10px] text-[#333] mt-1">Reunião marcada</div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <h3 class="text-xs font-semibold text-[#666] uppercase tracking-widest mb-4">Evolução de Leads por Dia</h3>
+              <canvas id="chart-evolucao" height="180"></canvas>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <h3 class="text-xs font-semibold text-[#666] uppercase tracking-widest mb-4">Conversão por Etapa</h3>
+              <canvas id="chart-funil" height="180"></canvas>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <h3 class="text-xs font-semibold text-[#666] uppercase tracking-widest mb-4">Performance por Nicho</h3>
+              <canvas id="chart-nicho" height="180"></canvas>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <h3 class="text-xs font-semibold text-[#666] uppercase tracking-widest mb-4">Motivos de Perda</h3>
+              <canvas id="chart-perda" height="180"></canvas>
+            </div>
+          </div>
+
+          <!-- Diagnóstico -->
+          <h3 class="text-sm font-semibold text-white mb-4">Diagnóstico da Campanha</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-[#4ade80]/10 flex items-center justify-center"><i data-lucide="trending-up" class="w-3.5 h-3.5 text-[#4ade80]"></i></div>
+                <span class="text-xs text-[#555] font-medium uppercase tracking-wider">Melhor Nicho</span>
+              </div>
+              <div id="diag-nicho" class="text-sm font-bold text-white">—</div>
+              <div id="diag-nicho-sub" class="text-xs text-[#444] mt-1"></div>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-[#60a5fa]/10 flex items-center justify-center"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#60a5fa]"></i></div>
+                <span class="text-xs text-[#555] font-medium uppercase tracking-wider">Melhor Cidade</span>
+              </div>
+              <div id="diag-cidade" class="text-sm font-bold text-white">—</div>
+              <div id="diag-cidade-sub" class="text-xs text-[#444] mt-1"></div>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-[#facc15]/10 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-[#facc15]"></i></div>
+                <span class="text-xs text-[#555] font-medium uppercase tracking-wider">Principal Gargalo</span>
+              </div>
+              <div id="diag-gargalo" class="text-sm font-bold text-white">—</div>
+              <div id="diag-gargalo-sub" class="text-xs text-[#444] mt-1"></div>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-[#a78bfa]/10 flex items-center justify-center"><i data-lucide="target" class="w-3.5 h-3.5 text-[#a78bfa]"></i></div>
+                <span class="text-xs text-[#555] font-medium uppercase tracking-wider">Melhor Etapa</span>
+              </div>
+              <div id="diag-etapa" class="text-sm font-bold text-white">—</div>
+              <div id="diag-etapa-sub" class="text-xs text-[#444] mt-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB: CUSTOS & ROI ── -->
+        <div id="met-custos" class="met-panel hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Inputs -->
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+              <h3 class="text-sm font-semibold text-white mb-5">Dados da Campanha</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="text-xs text-[#555] font-medium block mb-2">Custo total da campanha (R$)</label>
+                  <input type="number" id="custo-campanha" oninput="saveMetCustos();calcROI()" placeholder="0,00" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+                </div>
+                <div>
+                  <label class="text-xs text-[#555] font-medium block mb-2">Tempo investido (horas)</label>
+                  <input type="number" id="custo-tempo" oninput="saveMetCustos();calcROI()" placeholder="0" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+                </div>
+                <div>
+                  <label class="text-xs text-[#555] font-medium block mb-2">Ticket médio estimado (R$)</label>
+                  <input type="number" id="custo-ticket" oninput="saveMetCustos();calcROI()" placeholder="0,00" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+                </div>
+                <div>
+                  <label class="text-xs text-[#555] font-medium block mb-2">Valor hora (R$/h)</label>
+                  <input type="number" id="custo-hora" oninput="saveMetCustos();calcROI()" placeholder="0,00" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Calculated Results -->
+            <div class="space-y-4">
+              <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+                <h3 class="text-sm font-semibold text-white mb-5">Custo por Resultado</h3>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between py-2 border-b border-[#111]">
+                    <span class="text-xs text-[#555]">Custo por lead</span>
+                    <span id="calc-cpl" class="text-sm font-bold text-white">R$ —</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2 border-b border-[#111]">
+                    <span class="text-xs text-[#555]">Custo por resposta</span>
+                    <span id="calc-cpr" class="text-sm font-bold text-white">R$ —</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2 border-b border-[#111]">
+                    <span class="text-xs text-[#555]">Custo por reunião</span>
+                    <span id="calc-cpreuniao" class="text-sm font-bold text-white">R$ —</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2">
+                    <span class="text-xs text-[#555]">Custo por cliente fechado</span>
+                    <span id="calc-cpf" class="text-sm font-bold text-white">R$ —</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+                <h3 class="text-sm font-semibold text-white mb-5">Resultado Financeiro</h3>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between py-2 border-b border-[#111]">
+                    <span class="text-xs text-[#555]">Receita potencial</span>
+                    <span id="calc-receita" class="text-sm font-bold text-[#4ade80]">R$ —</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2 border-b border-[#111]">
+                    <span class="text-xs text-[#555]">Custo total (camp. + tempo)</span>
+                    <span id="calc-custo-total" class="text-sm font-bold text-[#f87171]">R$ —</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2">
+                    <span class="text-xs text-[#555]">ROI estimado</span>
+                    <span id="calc-roi" class="text-2xl font-black text-white">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ROI Visual Bar -->
+          <div class="mt-6 bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+            <h3 class="text-xs font-semibold text-[#555] uppercase tracking-widest mb-4">Visão do ROI</h3>
+            <canvas id="chart-roi" height="80"></canvas>
+          </div>
+        </div>
+
+        <!-- ── TAB: ANÁLISE DE ERROS ── -->
+        <div id="met-erros" class="met-panel hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form -->
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+              <h3 class="text-sm font-semibold text-white mb-5">Registrar Problema</h3>
+              <div class="space-y-3">
+                <div class="relative">
+                  <select id="erro-tipo" class="input-field w-full text-xs px-4 py-3 rounded-xl appearance-none cursor-pointer pr-8">
+                    <option value="Motivo de perda">Motivo de perda</option>
+                    <option value="Objeção comum">Objeção comum</option>
+                    <option value="Nicho fraco">Nicho com baixa resposta</option>
+                    <option value="Mensagem fraca">Mensagem que não performou</option>
+                    <option value="Falha no follow-up">Falha no follow-up</option>
+                    <option value="Lead sem perfil">Lead sem perfil ideal</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+                <input type="text" id="erro-nicho" placeholder="Nicho relacionado (opcional)" class="input-field w-full text-xs px-4 py-3 rounded-xl" />
+                <textarea id="erro-desc" rows="4" placeholder="Descreva o erro, objeção ou situação..." class="input-field w-full text-xs px-4 py-3 rounded-xl resize-none"></textarea>
+                <button onclick="addErro()" class="w-full btn-primary py-2.5 rounded-xl text-xs font-semibold">Registrar</button>
+              </div>
+            </div>
+
+            <!-- List -->
+            <div class="lg:col-span-2 space-y-3">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-white">Problemas Registrados</h3>
+                <div class="flex gap-2" id="erro-filters"></div>
+              </div>
+              <div id="erros-list" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB: APRENDIZADOS ── -->
+        <div id="met-aprendizados" class="met-panel hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-[#4ade80]/10 flex items-center justify-center"><i data-lucide="check-circle-2" class="w-4 h-4 text-[#4ade80]"></i></div>
+                <h3 class="text-sm font-semibold text-white">O que funcionou</h3>
+              </div>
+              <textarea id="apr-funcionou" rows="6" oninput="saveAprendizados()" placeholder="Abordagens, nichos, horários, mensagens que trouxeram resultado..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none"></textarea>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-[#f87171]/10 flex items-center justify-center"><i data-lucide="x-circle" class="w-4 h-4 text-[#f87171]"></i></div>
+                <h3 class="text-sm font-semibold text-white">O que não funcionou</h3>
+              </div>
+              <textarea id="apr-nao-funcionou" rows="6" oninput="saveAprendizados()" placeholder="Estratégias que falharam, perfis errados, mensagens ignoradas..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none"></textarea>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-[#facc15]/10 flex items-center justify-center"><i data-lucide="lightbulb" class="w-4 h-4 text-[#facc15]"></i></div>
+                <h3 class="text-sm font-semibold text-white">O que melhorar</h3>
+              </div>
+              <textarea id="apr-melhorar" rows="6" oninput="saveAprendizados()" placeholder="Ajustes no processo, ICP mais claro, melhor qualificação..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none"></textarea>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-[#60a5fa]/10 flex items-center justify-center"><i data-lucide="flask-conical" class="w-4 h-4 text-[#60a5fa]"></i></div>
+                <h3 class="text-sm font-semibold text-white">Hipóteses para testar</h3>
+              </div>
+              <textarea id="apr-hipoteses" rows="6" oninput="saveAprendizados()" placeholder="E se mudarmos o tom? E se testarmos outro nicho? E se abordarem de manhã?" class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none"></textarea>
+            </div>
+            <div class="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6 lg:col-span-2">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-[#a78bfa]/10 flex items-center justify-center"><i data-lucide="list-checks" class="w-4 h-4 text-[#a78bfa]"></i></div>
+                <h3 class="text-sm font-semibold text-white">Próximas ações</h3>
+              </div>
+              <textarea id="apr-acoes" rows="4" oninput="saveAprendizados()" placeholder="Lista de ações concretas para a próxima campanha de prospecção..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none"></textarea>
+            </div>
+          </div>
+          <div class="mt-4 flex justify-end">
+            <button onclick="saveAprendizados(true)" class="btn-primary px-6 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i> Salvar aprendizados
+            </button>
+          </div>
+        </div>
+
+      </div><!-- end page-metricas -->
+
     </div>
   </main>
 </div>
@@ -732,6 +1022,7 @@ function navigate(page) {
     notas: ['Anotações', 'Registre insights comerciais'],
     pipeline: ['Pipeline', 'Visualize seus leads por estágio'],
     ia: ['IA Assistant', 'Inteligência artificial para prospecção'],
+    metricas: ['Métricas & Inteligência', 'Analise resultados, custos e aprendizados da prospecção'],
   };
   const [title, subtitle] = titles[page] || ['', ''];
   document.getElementById('page-title').textContent = title;
@@ -742,6 +1033,7 @@ function navigate(page) {
   if (page === 'notas') { updateNoteLeadSelect(); renderNotes(); renderNoteTagsFilter(); }
   if (page === 'pipeline') renderPipeline();
   if (page === 'ia') initIAPage();
+  if (page === 'metricas') initMetricas();
 }
 
 // ============================================================
@@ -2037,6 +2329,412 @@ Escreva apenas a mensagem, sem explicações.`;
 function copyResult(elId) {
   const text = document.getElementById(elId)?.textContent || '';
   navigator.clipboard.writeText(text).then(() => showToast('Copiado!', 'success'));
+}
+
+// ============================================================
+//  MÉTRICAS & INTELIGÊNCIA
+// ============================================================
+let metCustos = JSON.parse(localStorage.getItem('hl_custos') || '{"campanha":0,"tempo":0,"ticket":0,"hora":0}');
+let metErros  = JSON.parse(localStorage.getItem('hl_erros')  || '[]');
+let metApr    = JSON.parse(localStorage.getItem('hl_apr')    || '{}');
+let chartInstances = {};
+let activeMetTab = 'visao';
+
+function setMetTab(tab) {
+  activeMetTab = tab;
+  ['visao','custos','erros','aprendizados'].forEach(t => {
+    document.getElementById('met-' + t).classList.toggle('hidden', t !== tab);
+    const btn = document.getElementById('met-tab-' + t);
+    btn.classList.toggle('active-met-tab', t === tab);
+    btn.classList.toggle('text-[#555]', t !== tab);
+  });
+  if (tab === 'visao')   { calcMetricas(); renderCharts(); renderDiagnostico(); }
+  if (tab === 'custos')  { loadCustos(); calcROI(); }
+  if (tab === 'erros')   renderErros();
+  if (tab === 'aprendizados') loadAprendizados();
+  lucide.createIcons();
+}
+
+function initMetricas() {
+  calcMetricas();
+  setTimeout(() => { renderCharts(); renderDiagnostico(); lucide.createIcons(); }, 80);
+}
+
+// ── Visão Geral ──
+function calcMetricas() {
+  const total     = leads.length;
+  const contatados = leads.filter(l => ['Contatado','Reunião marcada','Convertido','Perdido','Sem resposta'].includes(l.status)).length;
+  const respostas  = leads.filter(l => ['Contatado','Reunião marcada','Convertido'].includes(l.status)).length;
+  const reunioes   = leads.filter(l => l.status === 'Reunião marcada').length;
+  const fechados   = leads.filter(l => l.status === 'Convertido').length;
+  const perdidos   = leads.filter(l => l.status === 'Perdido').length;
+  const propostas  = reunioes;
+
+  const txResposta  = contatados > 0 ? Math.round((respostas / contatados) * 100) : 0;
+  const txReuniao   = respostas  > 0 ? Math.round((reunioes  / respostas)  * 100) : 0;
+  const txFechamento = reunioes  > 0 ? Math.round((fechados  / reunioes)   * 100) : 0;
+
+  document.getElementById('m-total').textContent       = total;
+  document.getElementById('m-contatados').textContent  = contatados;
+  document.getElementById('m-respostas').textContent   = respostas;
+  document.getElementById('m-reunioes').textContent    = reunioes;
+  document.getElementById('m-fechados').textContent    = fechados;
+  document.getElementById('m-perdidos').textContent    = perdidos;
+  document.getElementById('m-propostas').textContent   = propostas;
+  document.getElementById('m-tx-resposta').textContent  = txResposta + '%';
+  document.getElementById('m-tx-reuniao').textContent   = txReuniao + '%';
+  document.getElementById('m-tx-fechamento').textContent = txFechamento + '%';
+}
+
+// ── Charts ──
+function destroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+const CHART_DEFAULTS = {
+  color: '#9ca3af',
+  plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11, family: 'Inter' }, boxWidth: 10, padding: 16 } } },
+  scales: {
+    x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+    y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+  }
+};
+
+function renderCharts() {
+  renderEvolucaoChart();
+  renderFunilChart();
+  renderNichoChart();
+  renderPerdaChart();
+}
+
+function renderEvolucaoChart() {
+  destroyChart('evolucao');
+  const canvas = document.getElementById('chart-evolucao');
+  if (!canvas) return;
+
+  const last14 = [...Array(14)].map((_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (13 - i));
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  });
+  const counts = last14.map(label => {
+    const [day, month] = label.split('/');
+    return leads.filter(l => {
+      const d = new Date(l.createdAt);
+      return d.getDate() === +day && (d.getMonth()+1) === +month;
+    }).length;
+  });
+
+  chartInstances['evolucao'] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: last14,
+      datasets: [{
+        label: 'Leads',
+        data: counts,
+        borderColor: '#a78bfa',
+        backgroundColor: 'rgba(167,139,250,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#a78bfa',
+        pointRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: { x: CHART_DEFAULTS.scales.x, y: { ...CHART_DEFAULTS.scales.y, beginAtZero: true, ticks: { ...CHART_DEFAULTS.scales.y.ticks, stepSize: 1 } } }
+    }
+  });
+}
+
+function renderFunilChart() {
+  destroyChart('funil');
+  const canvas = document.getElementById('chart-funil');
+  if (!canvas) return;
+  const statuses = ['Novo','Contatado','Sem resposta','Reunião marcada','Convertido','Perdido'];
+  const counts = statuses.map(s => leads.filter(l => l.status === s).length);
+  const colors = ['#60a5fa','#a78bfa','#facc15','#fb923c','#4ade80','#f87171'];
+
+  chartInstances['funil'] = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: statuses,
+      datasets: [{ label: 'Leads', data: counts, backgroundColor: colors, borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: { x: CHART_DEFAULTS.scales.x, y: { ...CHART_DEFAULTS.scales.y, beginAtZero: true, ticks: { ...CHART_DEFAULTS.scales.y.ticks, stepSize: 1 } } }
+    }
+  });
+}
+
+function renderNichoChart() {
+  destroyChart('nicho');
+  const canvas = document.getElementById('chart-nicho');
+  if (!canvas) return;
+  const nichoMap = {};
+  leads.forEach(l => { if (l.nicho) nichoMap[l.nicho] = (nichoMap[l.nicho]||0) + 1; });
+  const sorted = Object.entries(nichoMap).sort((a,b) => b[1]-a[1]).slice(0,8);
+  if (sorted.length === 0) return;
+
+  chartInstances['nicho'] = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(e => e[0]),
+      datasets: [{ label: 'Leads', data: sorted.map(e => e[1]), backgroundColor: 'rgba(96,165,250,0.7)', borderRadius: 5, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: { x: { ...CHART_DEFAULTS.scales.x, beginAtZero: true }, y: CHART_DEFAULTS.scales.y }
+    }
+  });
+}
+
+function renderPerdaChart() {
+  destroyChart('perda');
+  const canvas = document.getElementById('chart-perda');
+  if (!canvas) return;
+
+  const tipoMap = {};
+  metErros.forEach(e => { tipoMap[e.tipo] = (tipoMap[e.tipo]||0) + 1; });
+
+  if (Object.keys(tipoMap).length === 0) {
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#2a2a2a';
+    ctx.font = '11px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('Nenhum erro registrado ainda', canvas.width/2, 80);
+    return;
+  }
+
+  const palette = ['#f87171','#fb923c','#facc15','#4ade80','#60a5fa','#a78bfa'];
+  chartInstances['perda'] = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(tipoMap),
+      datasets: [{ data: Object.values(tipoMap), backgroundColor: palette, borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { ...CHART_DEFAULTS.plugins.legend, position: 'right' } },
+      cutout: '60%'
+    }
+  });
+}
+
+// ── Diagnóstico ──
+function renderDiagnostico() {
+  // Melhor nicho (mais convertidos)
+  const nichoConv = {};
+  leads.filter(l => l.status === 'Convertido' && l.nicho).forEach(l => { nichoConv[l.nicho] = (nichoConv[l.nicho]||0) + 1; });
+  const bestNicho = Object.entries(nichoConv).sort((a,b) => b[1]-a[1])[0];
+  document.getElementById('diag-nicho').textContent = bestNicho ? bestNicho[0] : 'Sem dados';
+  document.getElementById('diag-nicho-sub').textContent = bestNicho ? `${bestNicho[1]} cliente(s) fechado(s)` : 'Feche clientes para ver';
+
+  // Melhor cidade
+  const cidadeConv = {};
+  leads.filter(l => l.status === 'Convertido' && l.cidade).forEach(l => { cidadeConv[l.cidade] = (cidadeConv[l.cidade]||0) + 1; });
+  const bestCidade = Object.entries(cidadeConv).sort((a,b) => b[1]-a[1])[0];
+  document.getElementById('diag-cidade').textContent = bestCidade ? bestCidade[0] : 'Sem dados';
+  document.getElementById('diag-cidade-sub').textContent = bestCidade ? `${bestCidade[1]} cliente(s) fechado(s)` : '';
+
+  // Principal gargalo (status com mais leads travados)
+  const gargalos = { 'Sem resposta': 0, 'Novo': 0, 'Contatado': 0 };
+  leads.forEach(l => { if (gargalos[l.status] !== undefined) gargalos[l.status]++; });
+  const worstStage = Object.entries(gargalos).sort((a,b) => b[1]-a[1])[0];
+  document.getElementById('diag-gargalo').textContent = worstStage ? worstStage[0] : '—';
+  document.getElementById('diag-gargalo-sub').textContent = worstStage && worstStage[1] > 0 ? `${worstStage[1]} lead(s) parado(s)` : '';
+
+  // Melhor etapa de conversão
+  const respostas = leads.filter(l => ['Contatado','Reunião marcada','Convertido'].includes(l.status)).length;
+  const txR = leads.length > 0 ? Math.round((respostas / leads.length) * 100) : 0;
+  document.getElementById('diag-etapa').textContent = txR >= 50 ? 'Prospecção inicial' : txR >= 20 ? 'Primeiro contato' : 'Qualificação';
+  document.getElementById('diag-etapa-sub').textContent = `${txR}% chegam ao contato`;
+}
+
+// ── Custos ──
+function loadCustos() {
+  document.getElementById('custo-campanha').value = metCustos.campanha || '';
+  document.getElementById('custo-tempo').value    = metCustos.tempo    || '';
+  document.getElementById('custo-ticket').value   = metCustos.ticket   || '';
+  document.getElementById('custo-hora').value     = metCustos.hora     || '';
+  calcROI();
+}
+
+function saveMetCustos() {
+  metCustos = {
+    campanha: +document.getElementById('custo-campanha').value || 0,
+    tempo:    +document.getElementById('custo-tempo').value    || 0,
+    ticket:   +document.getElementById('custo-ticket').value   || 0,
+    hora:     +document.getElementById('custo-hora').value     || 0,
+  };
+  localStorage.setItem('hl_custos', JSON.stringify(metCustos));
+}
+
+function calcROI() {
+  const c = metCustos;
+  const total    = leads.length;
+  const respostas = leads.filter(l => ['Contatado','Reunião marcada','Convertido'].includes(l.status)).length;
+  const reunioes = leads.filter(l => l.status === 'Reunião marcada').length;
+  const fechados = leads.filter(l => l.status === 'Convertido').length;
+
+  const custoTempo = c.tempo * c.hora;
+  const custoTotal = c.campanha + custoTempo;
+  const receita    = fechados * c.ticket;
+  const roi        = custoTotal > 0 ? Math.round(((receita - custoTotal) / custoTotal) * 100) : 0;
+
+  const fmt = v => v > 0 ? 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'R$ —';
+
+  document.getElementById('calc-cpl').textContent       = total    > 0 && c.campanha > 0 ? fmt(c.campanha / total)    : 'R$ —';
+  document.getElementById('calc-cpr').textContent       = respostas > 0 && c.campanha > 0 ? fmt(c.campanha / respostas) : 'R$ —';
+  document.getElementById('calc-cpreuniao').textContent = reunioes  > 0 && c.campanha > 0 ? fmt(c.campanha / reunioes)  : 'R$ —';
+  document.getElementById('calc-cpf').textContent       = fechados  > 0 && c.campanha > 0 ? fmt(c.campanha / fechados)  : 'R$ —';
+  document.getElementById('calc-receita').textContent   = fechados  > 0 && c.ticket  > 0 ? fmt(receita) : 'R$ —';
+  document.getElementById('calc-custo-total').textContent = custoTotal > 0 ? fmt(custoTotal) : 'R$ —';
+
+  const roiEl = document.getElementById('calc-roi');
+  roiEl.textContent = custoTotal > 0 ? roi + '%' : '—';
+  roiEl.style.color = roi > 0 ? '#4ade80' : roi < 0 ? '#f87171' : '#fff';
+
+  renderROIChart(custoTotal, receita);
+}
+
+function renderROIChart(custo, receita) {
+  destroyChart('roi');
+  const canvas = document.getElementById('chart-roi');
+  if (!canvas || custo === 0) return;
+  chartInstances['roi'] = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: ['Custo Total', 'Receita Potencial'],
+      datasets: [{ data: [custo, receita], backgroundColor: ['rgba(248,113,113,0.7)', 'rgba(74,222,128,0.7)'], borderRadius: 8, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ...CHART_DEFAULTS.scales.x, beginAtZero: true, ticks: { ...CHART_DEFAULTS.scales.x.ticks, callback: v => 'R$ ' + v.toLocaleString('pt-BR') } },
+        y: CHART_DEFAULTS.scales.y
+      }
+    }
+  });
+}
+
+// ── Erros ──
+function addErro() {
+  const tipo  = document.getElementById('erro-tipo').value;
+  const nicho = document.getElementById('erro-nicho').value.trim();
+  const desc  = document.getElementById('erro-desc').value.trim();
+  if (!desc) { showToast('Descreva o problema.', 'info'); return; }
+  metErros.unshift({ id: generateId(), tipo, nicho, desc, data: Date.now() });
+  localStorage.setItem('hl_erros', JSON.stringify(metErros));
+  document.getElementById('erro-nicho').value = '';
+  document.getElementById('erro-desc').value  = '';
+  renderErros();
+  showToast('Problema registrado!', 'success');
+}
+
+function deleteErro(id) {
+  metErros = metErros.filter(e => e.id !== id);
+  localStorage.setItem('hl_erros', JSON.stringify(metErros));
+  renderErros();
+}
+
+const ERRO_COLORS = {
+  'Motivo de perda':  '#f87171',
+  'Objeção comum':    '#fb923c',
+  'Nicho fraco':      '#facc15',
+  'Mensagem fraca':   '#a78bfa',
+  'Falha no follow-up': '#60a5fa',
+  'Lead sem perfil':  '#9ca3af',
+};
+
+function renderErros() {
+  const container = document.getElementById('erros-list');
+  if (!container) return;
+  if (metErros.length === 0) {
+    container.innerHTML = `<div class="flex flex-col items-center justify-center py-16 text-center">
+      <div class="w-12 h-12 bg-[#0f0f0f] rounded-xl flex items-center justify-center mb-4 border border-[#1a1a1a]">
+        <i data-lucide="shield-check" class="w-5 h-5 text-[#2a2a2a]"></i>
+      </div>
+      <p class="text-sm text-[#333]">Nenhum problema registrado</p>
+    </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  // Filter chips
+  const tipos = [...new Set(metErros.map(e => e.tipo))];
+  const filtersEl = document.getElementById('erro-filters');
+  if (filtersEl) {
+    filtersEl.innerHTML = tipos.map(t =>
+      `<button onclick="filterErros('${t}')" class="filter-chip px-2.5 py-1 rounded-lg text-[10px] font-semibold" style="color:${ERRO_COLORS[t]||'#9ca3af'};border-color:${ERRO_COLORS[t]||'#9ca3af'}30">${t}</button>`
+    ).join('');
+  }
+
+  container.innerHTML = metErros.map(e => {
+    const color = ERRO_COLORS[e.tipo] || '#9ca3af';
+    const date  = new Date(e.data).toLocaleDateString('pt-BR');
+    return `<div class="note-card bg-[#0a0a0a] rounded-xl p-4 flex gap-3">
+      <div class="w-1 rounded-full flex-shrink-0 self-stretch" style="background:${color}"></div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="color:${color};background:${color}18">${e.tipo}</span>
+          <div class="flex items-center gap-2">
+            ${e.nicho ? `<span class="text-[10px] text-[#444]">${escHtml(e.nicho)}</span>` : ''}
+            <span class="text-[10px] text-[#2a2a2a]">${date}</span>
+            <button onclick="deleteErro('${e.id}')" class="action-btn p-1 rounded text-[#2a2a2a] hover:text-[#f87171]">
+              <i data-lucide="trash-2" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </div>
+        <p class="text-xs text-[#888] leading-relaxed">${escHtml(e.desc)}</p>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+function filterErros(tipo) {
+  const container = document.getElementById('erros-list');
+  const filtered = metErros.filter(e => e.tipo === tipo);
+  const color = ERRO_COLORS[tipo] || '#9ca3af';
+  container.innerHTML = filtered.map(e => {
+    const date = new Date(e.data).toLocaleDateString('pt-BR');
+    return `<div class="note-card bg-[#0a0a0a] rounded-xl p-4 flex gap-3">
+      <div class="w-1 rounded-full flex-shrink-0 self-stretch" style="background:${color}"></div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="color:${color};background:${color}18">${e.tipo}</span>
+          <div class="flex items-center gap-2">
+            ${e.nicho ? `<span class="text-[10px] text-[#444]">${escHtml(e.nicho)}</span>` : ''}
+            <span class="text-[10px] text-[#2a2a2a]">${date}</span>
+          </div>
+        </div>
+        <p class="text-xs text-[#888] leading-relaxed">${escHtml(e.desc)}</p>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+// ── Aprendizados ──
+function loadAprendizados() {
+  ['funcionou','nao-funcionou','melhorar','hipoteses','acoes'].forEach(key => {
+    const el = document.getElementById('apr-' + key);
+    if (el) el.value = metApr[key] || '';
+  });
+}
+
+function saveAprendizados(showMsg = false) {
+  ['funcionou','nao-funcionou','melhorar','hipoteses','acoes'].forEach(key => {
+    const el = document.getElementById('apr-' + key);
+    if (el) metApr[key] = el.value;
+  });
+  localStorage.setItem('hl_apr', JSON.stringify(metApr));
+  if (showMsg) showToast('Aprendizados salvos!', 'success');
 }
 
 // ============================================================
