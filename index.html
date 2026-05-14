@@ -410,190 +410,90 @@
       </div>
 
       <!-- ===================== IA PAGE ===================== -->
-      <div id="page-ia" class="hidden p-8 animate-fade-in">
+      <div id="page-ia" class="hidden h-full animate-fade-in flex overflow-hidden">
 
-        <!-- API Key Banner -->
-        <div id="ia-key-banner" class="hidden mb-6 bg-[#0d0d0d] border border-[#a78bfa]/20 rounded-2xl p-5 ai-glow">
-          <div class="flex items-start gap-4">
-            <div class="w-9 h-9 rounded-xl bg-[#a78bfa]/10 flex items-center justify-center flex-shrink-0">
-              <i data-lucide="key" class="w-4 h-4 text-[#a78bfa]"></i>
+        <!-- Chat List Sidebar -->
+        <div class="w-64 flex-shrink-0 border-r border-[#111] flex flex-col h-full bg-[#080808]">
+          <div class="p-3 border-b border-[#111]">
+            <button onclick="newChat()" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-[#1f1f1f] text-xs font-medium text-[#888] hover:text-white hover:border-[#2a2a2a] transition-all btn-ghost">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              Nova conversa
+            </button>
+          </div>
+          <div id="chat-list" class="flex-1 overflow-y-auto p-2 space-y-0.5"></div>
+
+          <!-- API Key section -->
+          <div class="p-3 border-t border-[#111]">
+            <div id="ia-key-ok" class="hidden flex items-center gap-2 px-3 py-2">
+              <div class="w-1.5 h-1.5 rounded-full bg-[#4ade80] pulse-dot flex-shrink-0"></div>
+              <span class="text-[10px] text-[#444] flex-1">API conectada</span>
+              <button onclick="showKeyConfig()" class="text-[10px] text-[#333] hover:text-[#555] transition-colors">trocar</button>
             </div>
-            <div class="flex-1">
-              <p class="text-sm font-semibold text-white mb-1">Configure sua chave da API</p>
-              <p class="text-xs text-[#555] mb-3">Obtenha em <span class="text-[#a78bfa]">console.anthropic.com</span> → API Keys. A chave fica salva só no seu navegador.</p>
-              <div class="flex gap-3">
-                <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." class="key-input flex-1 px-4 py-2.5 rounded-xl text-sm" />
-                <button onclick="saveApiKey()" class="btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold flex-shrink-0">Salvar</button>
-              </div>
+            <div id="ia-key-config" class="space-y-2">
+              <p class="text-[10px] text-[#333] px-1">Chave Anthropic API</p>
+              <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." class="key-input w-full px-3 py-2 rounded-lg text-[11px]" />
+              <button onclick="saveApiKey()" class="w-full py-2 rounded-lg text-[11px] font-semibold btn-primary">Salvar chave</button>
             </div>
           </div>
         </div>
 
-        <!-- Key saved indicator -->
-        <div id="ia-key-saved" class="hidden mb-6 flex items-center justify-between bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl px-5 py-3">
-          <div class="flex items-center gap-3">
-            <div class="w-2 h-2 rounded-full bg-[#4ade80] pulse-dot"></div>
-            <span class="text-xs text-[#666]">API conectada</span>
-            <span id="ia-key-preview" class="text-xs text-[#333] font-mono"></span>
-          </div>
-          <button onclick="removeApiKey()" class="text-xs text-[#333] hover:text-[#f87171] transition-colors">Remover chave</button>
-        </div>
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden">
 
-        <!-- Tools Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          <!-- Tool 1: Escritor de Abordagem -->
-          <div class="ai-tool-card bg-[#0a0a0a] rounded-2xl p-6">
-            <div class="flex items-start gap-4 mb-5">
-              <div class="w-10 h-10 rounded-xl bg-[#a78bfa]/10 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="message-square-text" class="w-5 h-5 text-[#a78bfa]"></i>
+          <!-- Chat Header -->
+          <div id="chat-header" class="flex items-center justify-between px-6 py-4 border-b border-[#0f0f0f] flex-shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-7 h-7 rounded-lg bg-[#a78bfa]/10 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="bot" class="w-3.5 h-3.5 text-[#a78bfa]"></i>
               </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">Escritor de Abordagem</h3>
-                <p class="text-xs text-[#444] mt-0.5">Gera mensagem personalizada de prospecção para WhatsApp</p>
-              </div>
-            </div>
-            <div class="space-y-3 mb-4">
-              <div class="relative">
-                <select id="tool1-lead" class="input-field w-full text-xs px-4 py-2.5 rounded-xl appearance-none cursor-pointer pr-8">
-                  <option value="">Selecionar lead...</option>
-                </select>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              </div>
-              <div class="relative">
-                <select id="tool1-tom" class="input-field w-full text-xs px-4 py-2.5 rounded-xl appearance-none cursor-pointer pr-8">
-                  <option value="profissional">Tom: Profissional</option>
-                  <option value="descontraido">Tom: Descontraído</option>
-                  <option value="direto">Tom: Direto ao ponto</option>
-                  <option value="consultivo">Tom: Consultivo</option>
-                </select>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              </div>
-              <textarea id="tool1-extra" rows="2" placeholder="Contexto extra (opcional): ex. vi seu perfil no Instagram, vi que tem promoção..." class="input-field w-full text-xs px-4 py-3 rounded-xl resize-none"></textarea>
-            </div>
-            <button onclick="runTool1()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold bg-[#a78bfa]/10 text-[#a78bfa] border border-[#a78bfa]/20 hover:bg-[#a78bfa]/20 transition-all">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-              Gerar mensagem
-            </button>
-            <div id="tool1-result" class="hidden ai-result mt-4 bg-[#111] rounded-xl p-4 relative">
-              <div id="tool1-text" class="streaming-text text-xs text-[#bbb] leading-relaxed"></div>
-              <button onclick="copyResult('tool1-text')" class="absolute top-3 right-3 action-btn p-1.5 rounded-lg text-[#333] hover:text-white">
-                <i data-lucide="copy" class="w-3 h-3"></i>
+              <span id="chat-title-display" class="text-sm font-semibold text-white truncate">Nova conversa</span>
+              <button id="rename-btn" onclick="startRename()" class="action-btn p-1.5 rounded-lg text-[#333] hover:text-[#888] flex-shrink-0 hidden">
+                <i data-lucide="pencil" class="w-3 h-3"></i>
               </button>
             </div>
+            <div class="flex items-center gap-2">
+              <select id="chat-lead-ctx" onchange="setChatLead(this.value)" class="input-field text-[11px] px-3 py-1.5 rounded-lg appearance-none cursor-pointer pr-7 text-[#555]">
+                <option value="">Sem lead vinculado</option>
+              </select>
+            </div>
           </div>
 
-          <!-- Tool 2: Análise de Lead -->
-          <div class="ai-tool-card bg-[#0a0a0a] rounded-2xl p-6">
-            <div class="flex items-start gap-4 mb-5">
-              <div class="w-10 h-10 rounded-xl bg-[#60a5fa]/10 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="scan-search" class="w-5 h-5 text-[#60a5fa]"></i>
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">Análise de Lead</h3>
-                <p class="text-xs text-[#444] mt-0.5">Score de potencial, objeções esperadas e próximos passos</p>
-              </div>
-            </div>
-            <div class="space-y-3 mb-4">
-              <div class="relative">
-                <select id="tool2-lead" class="input-field w-full text-xs px-4 py-2.5 rounded-xl appearance-none cursor-pointer pr-8">
-                  <option value="">Selecionar lead...</option>
-                </select>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              </div>
-            </div>
-            <button onclick="runTool2()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold bg-[#60a5fa]/10 text-[#60a5fa] border border-[#60a5fa]/20 hover:bg-[#60a5fa]/20 transition-all">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-              Analisar lead
+          <!-- Messages -->
+          <div id="chat-messages" class="flex-1 overflow-y-auto px-6 py-6 space-y-6"></div>
+
+          <!-- Quick Prompts -->
+          <div id="quick-prompts" class="px-6 pb-3 flex flex-wrap gap-2">
+            <button onclick="quickPrompt('abordagem')" class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#666] font-medium">
+              <i data-lucide="message-square-text" class="w-3 h-3"></i> Abordagem WhatsApp
             </button>
-            <div id="tool2-result" class="hidden ai-result mt-4 bg-[#111] rounded-xl p-4 relative">
-              <div id="tool2-text" class="streaming-text text-xs text-[#bbb] leading-relaxed"></div>
-              <button onclick="copyResult('tool2-text')" class="absolute top-3 right-3 action-btn p-1.5 rounded-lg text-[#333] hover:text-white">
-                <i data-lucide="copy" class="w-3 h-3"></i>
+            <button onclick="quickPrompt('analise')" class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#666] font-medium">
+              <i data-lucide="scan-search" class="w-3 h-3"></i> Analisar lead
+            </button>
+            <button onclick="quickPrompt('script')" class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#666] font-medium">
+              <i data-lucide="presentation" class="w-3 h-3"></i> Script de reunião
+            </button>
+            <button onclick="quickPrompt('followup')" class="filter-chip flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#666] font-medium">
+              <i data-lucide="refresh-cw" class="w-3 h-3"></i> Follow-up
+            </button>
+          </div>
+
+          <!-- Input Bar -->
+          <div class="px-6 pb-6 flex-shrink-0">
+            <div class="flex items-end gap-3 bg-[#0d0d0d] border border-[#1f1f1f] rounded-2xl px-4 py-3 focus-within:border-[#2a2a2a] transition-colors">
+              <textarea
+                id="chat-input"
+                rows="1"
+                placeholder="Pergunte sobre prospecção, leads, abordagens..."
+                onkeydown="chatKeydown(event)"
+                oninput="autoResize(this)"
+                class="flex-1 bg-transparent text-sm text-white placeholder-[#333] resize-none outline-none leading-relaxed max-h-40 overflow-y-auto"
+              ></textarea>
+              <button onclick="sendChatMessage()" id="send-btn" class="w-8 h-8 rounded-xl bg-[#a78bfa]/20 hover:bg-[#a78bfa]/30 flex items-center justify-center flex-shrink-0 transition-all self-end">
+                <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-[#a78bfa]"></i>
               </button>
             </div>
+            <p class="text-[10px] text-[#222] text-center mt-2">Powered by Claude · Anthropic</p>
           </div>
-
-          <!-- Tool 3: Script de Reunião -->
-          <div class="ai-tool-card bg-[#0a0a0a] rounded-2xl p-6">
-            <div class="flex items-start gap-4 mb-5">
-              <div class="w-10 h-10 rounded-xl bg-[#fb923c]/10 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="presentation" class="w-5 h-5 text-[#fb923c]"></i>
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">Script de Reunião</h3>
-                <p class="text-xs text-[#444] mt-0.5">Roteiro completo com perguntas-chave e argumentos de venda</p>
-              </div>
-            </div>
-            <div class="space-y-3 mb-4">
-              <div class="relative">
-                <select id="tool3-lead" class="input-field w-full text-xs px-4 py-2.5 rounded-xl appearance-none cursor-pointer pr-8">
-                  <option value="">Selecionar lead...</option>
-                </select>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              </div>
-              <div class="relative">
-                <select id="tool3-servico" class="input-field w-full text-xs px-4 py-2.5 rounded-xl appearance-none cursor-pointer pr-8">
-                  <option value="gestao de redes sociais">Gestão de Redes Sociais</option>
-                  <option value="tráfego pago">Tráfego Pago</option>
-                  <option value="criação de site">Criação de Site</option>
-                  <option value="identidade visual">Identidade Visual</option>
-                  <option value="marketing completo">Marketing Completo</option>
-                </select>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              </div>
-            </div>
-            <button onclick="runTool3()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold bg-[#fb923c]/10 text-[#fb923c] border border-[#fb923c]/20 hover:bg-[#fb923c]/20 transition-all">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-              Gerar script
-            </button>
-            <div id="tool3-result" class="hidden ai-result mt-4 bg-[#111] rounded-xl p-4 relative">
-              <div id="tool3-text" class="streaming-text text-xs text-[#bbb] leading-relaxed"></div>
-              <button onclick="copyResult('tool3-text')" class="absolute top-3 right-3 action-btn p-1.5 rounded-lg text-[#333] hover:text-white">
-                <i data-lucide="copy" class="w-3 h-3"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Tool 4: Follow-up Inteligente -->
-          <div class="ai-tool-card bg-[#0a0a0a] rounded-2xl p-6">
-            <div class="flex items-start gap-4 mb-5">
-              <div class="w-10 h-10 rounded-xl bg-[#facc15]/10 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="refresh-cw" class="w-5 h-5 text-[#facc15]"></i>
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">Follow-up Inteligente</h3>
-                <p class="text-xs text-[#444] mt-0.5">Mensagem de reativação para leads que não responderam</p>
-              </div>
-            </div>
-            <div class="space-y-3 mb-4">
-              <div class="relative">
-                <select id="tool4-lead" class="input-field w-full text-xs px-4 py-2.5 rounded-xl appearance-none cursor-pointer pr-8">
-                  <option value="">Selecionar lead...</option>
-                </select>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              </div>
-              <div class="relative">
-                <select id="tool4-tentativa" class="input-field w-full text-xs px-4 py-2.5 rounded-xl appearance-none cursor-pointer pr-8">
-                  <option value="2ª tentativa">2ª tentativa de contato</option>
-                  <option value="3ª tentativa">3ª tentativa de contato</option>
-                  <option value="reativação fria">Reativação fria (sumiu há muito tempo)</option>
-                </select>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              </div>
-            </div>
-            <button onclick="runTool4()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold bg-[#facc15]/10 text-[#facc15] border border-[#facc15]/20 hover:bg-[#facc15]/20 transition-all">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-              Gerar follow-up
-            </button>
-            <div id="tool4-result" class="hidden ai-result mt-4 bg-[#111] rounded-xl p-4 relative">
-              <div id="tool4-text" class="streaming-text text-xs text-[#bbb] leading-relaxed"></div>
-              <button onclick="copyResult('tool4-text')" class="absolute top-3 right-3 action-btn p-1.5 rounded-lg text-[#333] hover:text-white">
-                <i data-lucide="copy" class="w-3 h-3"></i>
-              </button>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -1581,21 +1481,340 @@ function escHtml(str) {
 //  IA ASSISTANT
 // ============================================================
 function initIAPage() {
-  const key = getApiKey();
-  document.getElementById('ia-key-banner').classList.toggle('hidden', !!key);
-  document.getElementById('ia-key-saved').classList.toggle('hidden', !key);
-  if (key) {
-    document.getElementById('ia-key-preview').textContent = key.substring(0, 18) + '••••••••';
-  }
-  ['tool1-lead','tool2-lead','tool3-lead','tool4-lead'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">Selecionar lead...</option>' +
-      leads.map(l => `<option value="${l.id}" ${l.id===cur?'selected':''}>${escHtml(l.empresa)} — ${escHtml(l.nicho||l.cidade||'')}</option>`).join('');
-  });
+  updateKeyUI();
+  updateChatLeadSelect();
+  if (chats.length === 0) newChat();
+  else selectChat(chats[0].id);
+  renderChatList();
   lucide.createIcons();
 }
+
+function newChat() {
+  const chat = { id: generateId(), name: 'Nova conversa', messages: [], leadId: null, createdAt: Date.now() };
+  chats.unshift(chat);
+  saveChats();
+  selectChat(chat.id);
+  renderChatList();
+}
+
+function selectChat(id) {
+  currentChatId = id;
+  const chat = chats.find(c => c.id === id);
+  if (!chat) return;
+  currentChatLeadId = chat.leadId || null;
+  const titleEl = document.getElementById('chat-title-display');
+  const renameBtn = document.getElementById('rename-btn');
+  const leadSel = document.getElementById('chat-lead-ctx');
+  if (titleEl) titleEl.textContent = chat.name;
+  if (renameBtn) renameBtn.classList.remove('hidden');
+  if (leadSel) leadSel.value = chat.leadId || '';
+  renderChatList();
+  renderMessages();
+  lucide.createIcons();
+}
+
+function renderChatList() {
+  const container = document.getElementById('chat-list');
+  if (!container) return;
+  if (chats.length === 0) {
+    container.innerHTML = '<div class="px-3 py-6 text-center text-[#2a2a2a] text-xs">Nenhuma conversa ainda</div>';
+    return;
+  }
+  container.innerHTML = chats.map(chat => {
+    const isActive = chat.id === currentChatId;
+    const lastMsg = chat.messages[chat.messages.length - 1];
+    const preview = lastMsg ? lastMsg.content.substring(0, 38) + '...' : 'Sem mensagens';
+    return `<div class="group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-[rgba(255,255,255,0.06)]' : 'hover:bg-[rgba(255,255,255,0.03)]'}" onclick="selectChat('${chat.id}')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${isActive?'#a78bfa':'#2a2a2a'}" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-medium truncate ${isActive?'text-white':'text-[#555]'}" id="chat-name-${chat.id}">${escHtml(chat.name)}</div>
+        <div class="text-[10px] truncate text-[#2a2a2a] mt-0.5">${escHtml(preview)}</div>
+      </div>
+      <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <button onclick="event.stopPropagation();startRenameInline('${chat.id}')" class="p-1 rounded text-[#333] hover:text-white transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button onclick="event.stopPropagation();deleteChat('${chat.id}')" class="p-1 rounded text-[#333] hover:text-[#f87171] transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteChat(id) {
+  chats = chats.filter(c => c.id !== id);
+  saveChats();
+  if (currentChatId === id) { if (chats.length > 0) selectChat(chats[0].id); else newChat(); }
+  else renderChatList();
+  showToast('Conversa excluída.', 'info');
+}
+
+function startRenameInline(id) {
+  const nameEl = document.getElementById('chat-name-' + id);
+  if (!nameEl) return;
+  const chat = chats.find(c => c.id === id);
+  if (!chat) return;
+  const oldName = chat.name;
+  nameEl.contentEditable = 'true';
+  nameEl.focus();
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(nameEl);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  const finish = () => {
+    nameEl.contentEditable = 'false';
+    const newName = nameEl.textContent.trim() || oldName;
+    chat.name = newName;
+    nameEl.textContent = newName;
+    if (id === currentChatId && document.getElementById('chat-title-display')) {
+      document.getElementById('chat-title-display').textContent = newName;
+    }
+    saveChats();
+    nameEl.removeEventListener('blur', finish);
+  };
+  nameEl.addEventListener('blur', finish);
+  nameEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); }
+    if (e.key === 'Escape') { nameEl.textContent = oldName; nameEl.blur(); }
+  });
+}
+
+function startRename() {
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+  const display = document.getElementById('chat-title-display');
+  if (!display) return;
+  const oldName = chat.name;
+  display.contentEditable = 'true';
+  display.focus();
+  const range = document.createRange();
+  range.selectNodeContents(display);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  const finish = () => {
+    display.contentEditable = 'false';
+    const newName = display.textContent.trim() || oldName;
+    chat.name = newName;
+    display.textContent = newName;
+    saveChats();
+    renderChatList();
+    display.removeEventListener('blur', finish);
+  };
+  display.addEventListener('blur', finish);
+  display.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); display.blur(); }
+    if (e.key === 'Escape') { display.textContent = oldName; display.blur(); }
+  });
+}
+
+function updateChatLeadSelect() {
+  const sel = document.getElementById('chat-lead-ctx');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Sem lead vinculado</option>' +
+    leads.map(l => `<option value="${l.id}">${escHtml(l.empresa)}</option>`).join('');
+}
+
+function setChatLead(leadId) {
+  currentChatLeadId = leadId || null;
+  const chat = chats.find(c => c.id === currentChatId);
+  if (chat) { chat.leadId = leadId || null; saveChats(); }
+}
+
+function renderMessages() {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+  if (chat.messages.length === 0) {
+    container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center py-16 animate-fade-in">
+      <div class="w-14 h-14 rounded-2xl bg-[#a78bfa]/10 flex items-center justify-center mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>
+      </div>
+      <h3 class="text-base font-bold text-white mb-2">LeadFlow IA</h3>
+      <p class="text-xs text-[#333] max-w-xs leading-relaxed mb-6">Pergunte sobre abordagens, analise leads, gere scripts ou mensagens de follow-up.</p>
+      <div class="flex flex-wrap gap-2 justify-center max-w-sm">
+        <button onclick="quickPrompt('abordagem')" class="filter-chip px-3 py-2 rounded-xl text-xs text-[#555] font-medium">💬 Abordagem WhatsApp</button>
+        <button onclick="quickPrompt('analise')" class="filter-chip px-3 py-2 rounded-xl text-xs text-[#555] font-medium">🔍 Analisar lead</button>
+        <button onclick="quickPrompt('script')" class="filter-chip px-3 py-2 rounded-xl text-xs text-[#555] font-medium">📋 Script de reunião</button>
+        <button onclick="quickPrompt('followup')" class="filter-chip px-3 py-2 rounded-xl text-xs text-[#555] font-medium">🔄 Follow-up</button>
+      </div>
+    </div>`;
+    return;
+  }
+  container.innerHTML = chat.messages.map((msg, i) => {
+    if (msg.role === 'user') {
+      return `<div class="flex justify-end animate-fade-in">
+        <div class="max-w-[75%] bg-[#1a1a1a] rounded-2xl rounded-tr-sm px-4 py-3">
+          <p class="text-sm text-white leading-relaxed whitespace-pre-wrap">${escHtml(msg.content)}</p>
+        </div>
+      </div>`;
+    }
+    return `<div class="flex gap-3 animate-fade-in">
+      <div class="w-7 h-7 rounded-lg bg-[#a78bfa]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl rounded-tl-sm px-4 py-3 relative group">
+          <p class="text-sm text-[#ccc] leading-relaxed whitespace-pre-wrap" id="msg-${i}">${escHtml(msg.content)}</p>
+          <button onclick="copyMsg(${i})" class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 action-btn p-1.5 rounded-lg text-[#333] hover:text-white transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function copyMsg(index) {
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+  navigator.clipboard.writeText(chat.messages[index]?.content || '').then(() => showToast('Copiado!', 'success'));
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+}
+
+function quickPrompt(type) {
+  const lead = currentChatLeadId ? leads.find(l => l.id === currentChatLeadId) : null;
+  const nome = lead ? lead.empresa : '[nome da empresa]';
+  const nicho = lead ? (lead.nicho || 'do segmento') : '[nicho]';
+  const prompts = {
+    abordagem: `Crie uma mensagem de prospecção para WhatsApp para ${nome} (${nicho}). Tom profissional, curta e com call-to-action.`,
+    analise: `Faça uma análise completa do lead ${nome} (${nicho}): score de potencial, objeções esperadas, serviços recomendados e próximo passo.`,
+    script: `Crie um script de reunião de vendas para apresentar gestão de redes sociais para ${nome} (${nicho}). Com perguntas de diagnóstico, argumentos e como lidar com objeções.`,
+    followup: `Crie uma mensagem de follow-up para WhatsApp para ${nome} que não respondeu a primeira abordagem. Com novo ângulo e pergunta de reengajamento.`,
+  };
+  const input = document.getElementById('chat-input');
+  if (!input) return;
+  input.value = prompts[type] || '';
+  autoResize(input);
+  input.focus();
+}
+
+async function sendChatMessage() {
+  if (isStreaming) return;
+  const input = document.getElementById('chat-input');
+  const text = (input?.value || '').trim();
+  if (!text) return;
+  const key = getApiKey();
+  if (!key) { showToast('Configure sua chave da API no painel esquerdo.', 'info'); return; }
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  chat.messages.push({ role: 'user', content: text });
+  if (chat.messages.length === 1) {
+    chat.name = text.substring(0, 35) + (text.length > 35 ? '...' : '');
+    const td = document.getElementById('chat-title-display');
+    if (td) td.textContent = chat.name;
+  }
+  saveChats();
+  renderMessages();
+  isStreaming = true;
+
+  const container = document.getElementById('chat-messages');
+  const assistantIndex = chat.messages.length;
+
+  const thinkingEl = document.createElement('div');
+  thinkingEl.className = 'flex gap-3 animate-fade-in';
+  thinkingEl.innerHTML = `<div class="w-7 h-7 rounded-lg bg-[#a78bfa]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>
+  </div>
+  <div class="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+    <span class="w-1.5 h-1.5 bg-[#a78bfa] rounded-full pulse-dot"></span>
+    <span class="w-1.5 h-1.5 bg-[#a78bfa] rounded-full pulse-dot" style="animation-delay:0.2s"></span>
+    <span class="w-1.5 h-1.5 bg-[#a78bfa] rounded-full pulse-dot" style="animation-delay:0.4s"></span>
+  </div>`;
+  if (container) { container.appendChild(thinkingEl); container.scrollTop = container.scrollHeight; }
+
+  const leadCtx = currentChatLeadId ? getLeadContext(currentChatLeadId) : '';
+  const systemPrompt = `Você é LeadFlow IA, especialista em vendas e prospecção para agências de marketing digital. Responda sempre em português brasileiro. Seja prático, direto e persuasivo. Use texto limpo sem asteriscos para negrito.${leadCtx ? '\n\nLead vinculado:\n' + leadCtx : ''}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1500,
+        stream: true,
+        system: systemPrompt,
+        messages: chat.messages.map(m => ({ role: m.role, content: m.content })),
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || 'Erro ' + res.status);
+    }
+
+    thinkingEl.remove();
+    chat.messages.push({ role: 'assistant', content: '' });
+    renderMessages();
+
+    const msgEl = document.getElementById('msg-' + assistantIndex);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const json = JSON.parse(data);
+          if (json.type === 'content_block_delta' && json.delta?.text) {
+            fullText += json.delta.text;
+            if (msgEl) msgEl.textContent = fullText;
+            if (container) container.scrollTop = container.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    chat.messages[assistantIndex].content = fullText;
+    saveChats();
+    renderChatList();
+
+  } catch (err) {
+    thinkingEl.remove();
+    chat.messages.push({ role: 'assistant', content: 'Erro: ' + err.message });
+    saveChats();
+    renderMessages();
+    showToast('Erro: ' + err.message, 'info');
+  } finally {
+    isStreaming = false;
+  }
+}
+
+// ---------- CHAT STATE ----------
+let chats = JSON.parse(localStorage.getItem('hl_chats') || '[]');
+let currentChatId = null;
+let currentChatLeadId = null;
+let isStreaming = false;
+function saveChats() { localStorage.setItem('hl_chats', JSON.stringify(chats)); }
 
 function getApiKey() { return localStorage.getItem('hl_apikey') || ''; }
 
@@ -1603,13 +1822,24 @@ function saveApiKey() {
   const val = document.getElementById('api-key-input').value.trim();
   if (!val.startsWith('sk-')) { showToast('Chave inválida. Deve começar com sk-', 'info'); return; }
   localStorage.setItem('hl_apikey', val);
-  showToast('Chave salva com sucesso!', 'success');
-  initIAPage();
+  showToast('API conectada!', 'success');
+  updateKeyUI();
+}
+
+function showKeyConfig() {
+  document.getElementById('ia-key-ok').classList.add('hidden');
+  document.getElementById('ia-key-config').classList.remove('hidden');
+}
+
+function updateKeyUI() {
+  const key = getApiKey();
+  document.getElementById('ia-key-ok').classList.toggle('hidden', !key);
+  document.getElementById('ia-key-config').classList.toggle('hidden', !!key);
 }
 
 function removeApiKey() {
   localStorage.removeItem('hl_apikey');
-  initIAPage();
+  updateKeyUI();
 }
 
 function getLeadContext(leadId) {
@@ -1617,18 +1847,17 @@ function getLeadContext(leadId) {
   if (!l) return '';
   return [
     l.empresa && `Empresa: ${l.empresa}`,
-    l.nicho && `Nicho/Segmento: ${l.nicho}`,
+    l.nicho && `Nicho: ${l.nicho}`,
     l.responsavel && `Responsável: ${l.responsavel}`,
     l.cidade && `Cidade: ${l.cidade}`,
-    l.status && `Status atual: ${l.status}`,
+    l.status && `Status: ${l.status}`,
     l.instagram && `Instagram: ${l.instagram}`,
     l.site && `Site: ${l.site}`,
     l.obs && `Observações: ${l.obs}`,
-    l.dataContato && `Data do contato: ${l.dataContato}`,
   ].filter(Boolean).join('\n');
 }
 
-async function callClaude(prompt, resultId, buttonEl) {
+async function callClaude_UNUSED(prompt, resultId, buttonEl) {
   const key = getApiKey();
   if (!key) { showToast('Configure sua chave da API primeiro.', 'info'); return false; }
 
