@@ -422,17 +422,11 @@
           </div>
           <div id="chat-list" class="flex-1 overflow-y-auto p-2 space-y-0.5"></div>
 
-          <!-- API Key section -->
+          <!-- Status -->
           <div class="p-3 border-t border-[#111]">
-            <div id="ia-key-ok" class="hidden flex items-center gap-2 px-3 py-2">
+            <div class="flex items-center gap-2 px-3 py-2">
               <div class="w-1.5 h-1.5 rounded-full bg-[#4ade80] pulse-dot flex-shrink-0"></div>
-              <span class="text-[10px] text-[#444] flex-1">API conectada</span>
-              <button onclick="showKeyConfig()" class="text-[10px] text-[#333] hover:text-[#555] transition-colors">trocar</button>
-            </div>
-            <div id="ia-key-config" class="space-y-2">
-              <p class="text-[10px] text-[#333] px-1">Chave Anthropic API</p>
-              <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." class="key-input w-full px-3 py-2 rounded-lg text-[11px]" />
-              <button onclick="saveApiKey()" class="w-full py-2 rounded-lg text-[11px] font-semibold btn-primary">Salvar chave</button>
+              <span class="text-[10px] text-[#444]">LeadFlow IA · Online</span>
             </div>
           </div>
         </div>
@@ -1481,7 +1475,6 @@ function escHtml(str) {
 //  IA ASSISTANT
 // ============================================================
 function initIAPage() {
-  updateKeyUI();
   updateChatLeadSelect();
   if (chats.length === 0) newChat();
   else selectChat(chats[0].id);
@@ -1705,8 +1698,6 @@ async function sendChatMessage() {
   const input = document.getElementById('chat-input');
   const text = (input?.value || '').trim();
   if (!text) return;
-  const key = getApiKey();
-  if (!key) { showToast('Configure sua chave da API no painel esquerdo.', 'info'); return; }
   const chat = chats.find(c => c.id === currentChatId);
   if (!chat) return;
 
@@ -1741,18 +1732,12 @@ async function sendChatMessage() {
   const systemPrompt = `Você é LeadFlow IA, especialista em vendas e prospecção para agências de marketing digital. Responda sempre em português brasileiro. Seja prático, direto e persuasivo. Use texto limpo sem asteriscos para negrito.${leadCtx ? '\n\nLead vinculado:\n' + leadCtx : ''}`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1500,
-        stream: true,
         system: systemPrompt,
         messages: chat.messages.map(m => ({ role: m.role, content: m.content })),
       }),
