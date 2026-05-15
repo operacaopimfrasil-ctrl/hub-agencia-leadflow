@@ -112,6 +112,16 @@
     .active-met-tab { background: #fff; color: #050505; font-weight: 700; }
     .met-panel { animation: fadeIn 0.2s ease-out; }
 
+    /* Empresas */
+    .emp-tab-btn { transition: all 0.15s ease; border-radius: 8px; }
+    .active-emp-tab { background: rgba(255,255,255,0.08); color: #fff; font-weight: 700; }
+    .emp-tab-btn:hover { background: rgba(255,255,255,0.05); }
+    .emp-card { transition: all 0.2s ease; border: 1px solid #1a1a1a; }
+    .emp-card:hover { border-color: #2a2a2a; background: #111; transform: translateY(-1px); }
+    .emp-status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .timeline-item::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: -8px; width: 1px; background: #1a1a1a; }
+    .timeline-item:last-child::before { display: none; }
+
     /* IA Assistant styles */
     .ai-tool-card { transition: all 0.2s ease; border: 1px solid #1a1a1a; }
     .ai-tool-card:hover { border-color: #2a2a2a; background: #111; }
@@ -169,6 +179,11 @@
       <button onclick="navigate('metricas')" id="nav-metricas" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#6a6a6a]">
         <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0"></i>
         <span>Métricas</span>
+      </button>
+      <button onclick="navigate('empresas')" id="nav-empresas" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#6a6a6a]">
+        <i data-lucide="building-2" class="w-4 h-4 flex-shrink-0"></i>
+        <span>Empresas</span>
+        <span id="nav-empresas-count" class="ml-auto text-[10px] bg-[#1a1a1a] text-[#6a6a6a] px-1.5 py-0.5 rounded font-semibold">0</span>
       </button>
 
       <div class="pt-4 pb-1 px-3">
@@ -781,6 +796,31 @@
 
       </div><!-- end page-metricas -->
 
+      <!-- ===================== EMPRESAS PAGE ===================== -->
+      <div id="page-empresas" class="hidden p-8 animate-fade-in">
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+          <div class="relative flex-1 min-w-48">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-[#444] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input id="search-empresas" type="text" placeholder="Buscar empresa ou nicho..." oninput="renderEmpresas()" class="input-field w-full text-xs pl-9 pr-4 py-2.5 rounded-lg" />
+          </div>
+          <div class="relative">
+            <select id="filter-emp-status" onchange="renderEmpresas()" class="input-field text-xs px-3 py-2.5 pr-8 rounded-lg appearance-none cursor-pointer">
+              <option value="">Todos os status</option>
+              <option value="Prospect">Prospect</option>
+              <option value="Contatado">Contatado</option>
+              <option value="Em negociação">Em negociação</option>
+              <option value="Cliente ativo">Cliente ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+          <button onclick="openEmpresaModal()" class="btn-primary flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold">
+            <i data-lucide="plus" class="w-4 h-4"></i> Nova Empresa
+          </button>
+        </div>
+        <div id="empresas-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -973,6 +1013,187 @@
   </div>
 </div>
 
+<!-- ===================== EMPRESA DETAIL OVERLAY ===================== -->
+<div id="empresa-detail-overlay" class="hidden fixed inset-0 z-40 bg-[#050505] flex flex-col animate-fade-in">
+  <!-- Header -->
+  <div class="flex items-center gap-4 px-6 py-4 border-b border-[#111] flex-shrink-0 bg-[#050505]">
+    <button onclick="closeEmpresaDetail()" class="action-btn p-2 rounded-lg text-[#555] hover:text-white flex-shrink-0">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="w-10 h-10 rounded-xl bg-[#1a1a1a] border border-[#222] flex items-center justify-center flex-shrink-0">
+      <span id="emp-det-initials" class="text-sm font-black text-[#555]">--</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-3 flex-wrap">
+        <h1 id="emp-det-nome" class="text-base font-bold text-white">—</h1>
+        <span id="emp-det-status" class="text-[10px]"></span>
+      </div>
+      <div class="flex items-center gap-2 mt-0.5">
+        <span id="emp-det-nicho" class="text-xs text-[#444]"></span>
+        <span id="emp-det-cidade-dot" class="text-[#222] hidden">·</span>
+        <span id="emp-det-cidade" class="text-xs text-[#444]"></span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-shrink-0">
+      <button id="emp-det-wa-btn" class="action-btn p-2 rounded-lg text-[#333] hover:text-[#4ade80]" style="display:none" title="WhatsApp">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+      </button>
+      <button id="emp-det-ig-btn" class="action-btn p-2 rounded-lg text-[#333] hover:text-[#e1306c]" style="display:none" title="Instagram">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+      </button>
+      <button id="emp-det-site-btn" class="action-btn p-2 rounded-lg text-[#333] hover:text-[#60a5fa]" style="display:none" title="Site">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </button>
+      <button onclick="openEmpresaModal(currentEmpresaId)" class="action-btn p-2 rounded-lg text-[#333] hover:text-white">
+        <i data-lucide="pencil" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+  <!-- Tabs -->
+  <div class="flex items-center gap-0.5 px-6 border-b border-[#0f0f0f] overflow-x-auto flex-shrink-0 bg-[#050505]">
+    <button onclick="setEmpTab('dashboard')"  id="emp-tab-btn-dashboard"  class="emp-tab-btn active-emp-tab px-4 py-3 text-xs font-semibold flex-shrink-0">Dashboard</button>
+    <button onclick="setEmpTab('campanhas')"  id="emp-tab-btn-campanhas"  class="emp-tab-btn text-[#555] px-4 py-3 text-xs font-semibold flex-shrink-0">Campanhas</button>
+    <button onclick="setEmpTab('leads')"      id="emp-tab-btn-leads"      class="emp-tab-btn text-[#555] px-4 py-3 text-xs font-semibold flex-shrink-0">Leads</button>
+    <button onclick="setEmpTab('timeline')"   id="emp-tab-btn-timeline"   class="emp-tab-btn text-[#555] px-4 py-3 text-xs font-semibold flex-shrink-0">Timeline</button>
+    <button onclick="setEmpTab('erros')"      id="emp-tab-btn-erros"      class="emp-tab-btn text-[#555] px-4 py-3 text-xs font-semibold flex-shrink-0">Erros</button>
+    <button onclick="setEmpTab('insights')"   id="emp-tab-btn-insights"   class="emp-tab-btn text-[#555] px-4 py-3 text-xs font-semibold flex-shrink-0">Insights</button>
+    <button onclick="setEmpTab('obs')"        id="emp-tab-btn-obs"        class="emp-tab-btn text-[#555] px-4 py-3 text-xs font-semibold flex-shrink-0">Observações</button>
+  </div>
+  <!-- Content -->
+  <div id="emp-det-content" class="flex-1 overflow-y-auto p-8"></div>
+</div>
+
+<!-- ===================== EMPRESA MODAL ===================== -->
+<div id="empresa-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="modal-overlay absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeEmpresaModal()"></div>
+  <div class="modal-content relative bg-[#0d0d0d] border border-[#1f1f1f] rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#1a1a1a]">
+      <h2 id="emp-modal-title" class="text-base font-semibold text-white">Nova Empresa</h2>
+      <button onclick="closeEmpresaModal()" class="action-btn p-2 rounded-lg"><i data-lucide="x" class="w-4 h-4 text-[#555]"></i></button>
+    </div>
+    <form id="empresa-form" onsubmit="saveEmpresa(event)" class="p-6 space-y-4">
+      <input type="hidden" id="emp-form-id" />
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="text-xs text-[#666] font-medium block mb-2">Nome da Empresa *</label>
+          <input type="text" id="emp-form-nome" required placeholder="Ex: Clínica Bella Forma" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Nicho</label>
+          <input type="text" id="emp-form-nicho" placeholder="Estética, Gastronomia..." class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Responsável</label>
+          <input type="text" id="emp-form-responsavel" placeholder="Nome do dono/gerente" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Telefone</label>
+          <input type="tel" id="emp-form-telefone" placeholder="(11) 99999-9999" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">WhatsApp</label>
+          <input type="tel" id="emp-form-whatsapp" placeholder="(11) 99999-9999" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Instagram</label>
+          <input type="text" id="emp-form-instagram" placeholder="@perfil" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Site</label>
+          <input type="text" id="emp-form-site" placeholder="https://..." class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Cidade</label>
+          <input type="text" id="emp-form-cidade" placeholder="São Paulo, SP" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Status</label>
+          <div class="relative">
+            <select id="emp-form-status" class="input-field w-full text-sm px-4 py-3 rounded-xl appearance-none cursor-pointer pr-8">
+              <option value="Prospect">Prospect</option>
+              <option value="Contatado">Contatado</option>
+              <option value="Em negociação">Em negociação</option>
+              <option value="Cliente ativo">Cliente ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-[#666] font-medium block mb-2">Observações gerais</label>
+        <textarea id="emp-form-obs" rows="3" placeholder="Informações importantes sobre a empresa..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none"></textarea>
+      </div>
+      <div class="flex items-center justify-between pt-2">
+        <button type="button" id="emp-delete-btn" onclick="deleteEmpresa()" class="hidden text-xs text-red-500 hover:text-red-400 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-500/10">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Excluir empresa
+        </button>
+        <div class="flex gap-3 ml-auto">
+          <button type="button" onclick="closeEmpresaModal()" class="btn-ghost px-4 py-2.5 rounded-xl text-sm text-[#555] font-medium">Cancelar</button>
+          <button type="submit" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== CAMPANHA MODAL ===================== -->
+<div id="campanha-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="modal-overlay absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeCampanhaModal()"></div>
+  <div class="modal-content relative bg-[#0d0d0d] border border-[#1f1f1f] rounded-2xl w-full max-w-md shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#1a1a1a]">
+      <h2 id="camp-modal-title" class="text-base font-semibold text-white">Nova Campanha</h2>
+      <button onclick="closeCampanhaModal()" class="action-btn p-2 rounded-lg"><i data-lucide="x" class="w-4 h-4 text-[#555]"></i></button>
+    </div>
+    <form id="campanha-form" onsubmit="saveCampanha(event)" class="p-6 space-y-4">
+      <input type="hidden" id="camp-form-id" />
+      <div>
+        <label class="text-xs text-[#666] font-medium block mb-2">Nome da campanha *</label>
+        <input type="text" id="camp-form-nome" required placeholder="Ex: Prospecção Instagram Maio" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Status</label>
+          <div class="relative">
+            <select id="camp-form-status" class="input-field w-full text-sm px-4 py-3 rounded-xl appearance-none cursor-pointer pr-8">
+              <option value="Ativa">Ativa</option>
+              <option value="Pausada">Pausada</option>
+              <option value="Finalizada">Finalizada</option>
+            </select>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-[#444] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Data de início</label>
+          <input type="date" id="camp-form-data" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-[#666] font-medium block mb-2">Objetivo / Descrição</label>
+        <textarea id="camp-form-desc" rows="3" placeholder="O que essa campanha pretende alcançar..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Leads</label>
+          <input type="number" id="camp-form-leads" placeholder="0" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Reuniões</label>
+          <input type="number" id="camp-form-reunioes" placeholder="0" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+        <div>
+          <label class="text-xs text-[#666] font-medium block mb-2">Fechados</label>
+          <input type="number" id="camp-form-fechados" placeholder="0" class="input-field w-full text-sm px-4 py-3 rounded-xl" />
+        </div>
+      </div>
+      <div class="flex gap-3 justify-end pt-2">
+        <button type="button" onclick="closeCampanhaModal()" class="btn-ghost px-4 py-2.5 rounded-xl text-sm text-[#555] font-medium">Cancelar</button>
+        <button type="submit" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast" class="hidden fixed bottom-6 right-6 z-[100]">
   <div class="toast flex items-center gap-3 bg-[#111] border border-[#222] rounded-xl px-4 py-3 shadow-2xl">
@@ -1022,7 +1243,8 @@ function navigate(page) {
     notas: ['Anotações', 'Registre insights comerciais'],
     pipeline: ['Pipeline', 'Visualize seus leads por estágio'],
     ia: ['IA Assistant', 'Inteligência artificial para prospecção'],
-    metricas: ['Métricas & Inteligência', 'Analise resultados, custos e aprendizados da prospecção'],
+    metricas:  ['Métricas & Inteligência', 'Analise resultados, custos e aprendizados da prospecção'],
+    empresas:  ['Empresas', 'Gestão comercial por empresa com campanhas e histórico'],
   };
   const [title, subtitle] = titles[page] || ['', ''];
   document.getElementById('page-title').textContent = title;
@@ -1034,6 +1256,7 @@ function navigate(page) {
   if (page === 'pipeline') renderPipeline();
   if (page === 'ia') initIAPage();
   if (page === 'metricas') initMetricas();
+  if (page === 'empresas') initEmpresas();
 }
 
 // ============================================================
@@ -2738,6 +2961,600 @@ function saveAprendizados(showMsg = false) {
 }
 
 // ============================================================
+//  EMPRESAS
+// ============================================================
+let empresas = JSON.parse(localStorage.getItem('hl_empresas') || '[]');
+let currentEmpresaId = null;
+let currentEmpTab = 'dashboard';
+
+function saveEmpresas() {
+  localStorage.setItem('hl_empresas', JSON.stringify(empresas));
+  updateEmpresasCounter();
+}
+
+function updateEmpresasCounter() {
+  const badge = document.getElementById('nav-empresas-count');
+  if (badge) badge.textContent = empresas.length;
+}
+
+function initEmpresas() {
+  renderEmpresas();
+  updateEmpresasCounter();
+  lucide.createIcons();
+}
+
+function empStatusColor(s) {
+  const map = {
+    'Prospect': '#60a5fa',
+    'Contatado': '#a78bfa',
+    'Em negociação': '#fbbf24',
+    'Cliente ativo': '#4ade80',
+    'Inativo': '#555',
+  };
+  return map[s] || '#555';
+}
+
+function renderEmpresas() {
+  const q = (document.getElementById('search-empresas')?.value || '').toLowerCase();
+  const fs = document.getElementById('filter-emp-status')?.value || '';
+  const container = document.getElementById('empresas-container');
+  if (!container) return;
+
+  let list = empresas.filter(e => {
+    const matchQ = !q || e.nome.toLowerCase().includes(q) || (e.nicho||'').toLowerCase().includes(q) || (e.cidade||'').toLowerCase().includes(q);
+    const matchS = !fs || e.status === fs;
+    return matchQ && matchS;
+  });
+
+  if (!list.length) {
+    container.innerHTML = `<div class="col-span-3 text-center py-20">
+      <div class="w-16 h-16 rounded-2xl bg-[#111] border border-[#1a1a1a] flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="building-2" class="w-7 h-7 text-[#333]"></i>
+      </div>
+      <p class="text-[#444] text-sm font-medium">Nenhuma empresa encontrada</p>
+      <p class="text-[#2a2a2a] text-xs mt-1">Adicione sua primeira empresa para começar</p>
+    </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = list.map(renderEmpresaCard).join('');
+  lucide.createIcons();
+}
+
+function renderEmpresaCard(e) {
+  const color = empStatusColor(e.status);
+  const initials = e.nome.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const campanhas = (e.campanhas || []).length;
+  const leads = (e.empLeads || []).length;
+  const erros = (e.erros || []).length;
+  return `<div class="emp-card bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl p-5 cursor-pointer hover:border-[#2a2a2a] transition-all" onclick="openEmpresaDetail('${e.id}')">
+    <div class="flex items-start justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#1a1a1a] border border-[#222] flex items-center justify-center flex-shrink-0">
+          <span class="text-sm font-black" style="color:${color}">${escHtml(initials)}</span>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-white leading-tight">${escHtml(e.nome)}</h3>
+          ${e.nicho ? `<p class="text-xs text-[#444] mt-0.5">${escHtml(e.nicho)}</p>` : ''}
+        </div>
+      </div>
+      <span class="text-[10px] font-semibold px-2 py-1 rounded-full flex-shrink-0" style="color:${color};background:${color}18">${escHtml(e.status)}</span>
+    </div>
+    <div class="flex items-center gap-4 text-xs text-[#444]">
+      <span class="flex items-center gap-1.5"><i data-lucide="megaphone" class="w-3 h-3"></i>${campanhas} campanha${campanhas!==1?'s':''}</span>
+      <span class="flex items-center gap-1.5"><i data-lucide="users" class="w-3 h-3"></i>${leads} lead${leads!==1?'s':''}</span>
+      ${erros ? `<span class="flex items-center gap-1.5 text-red-500/60"><i data-lucide="alert-circle" class="w-3 h-3"></i>${erros} erro${erros!==1?'s':''}</span>` : ''}
+    </div>
+    ${e.cidade ? `<p class="text-[10px] text-[#333] mt-3 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>${escHtml(e.cidade)}</p>` : ''}
+  </div>`;
+}
+
+// ── Empresa Modal (CRUD) ──
+function openEmpresaModal(id) {
+  const modal = document.getElementById('empresa-modal');
+  const form = document.getElementById('empresa-form');
+  form.reset();
+  document.getElementById('emp-delete-btn').classList.add('hidden');
+
+  if (id) {
+    const e = empresas.find(x => x.id === id);
+    if (!e) return;
+    document.getElementById('emp-modal-title').textContent = 'Editar Empresa';
+    document.getElementById('emp-form-id').value = e.id;
+    document.getElementById('emp-form-nome').value = e.nome || '';
+    document.getElementById('emp-form-nicho').value = e.nicho || '';
+    document.getElementById('emp-form-responsavel').value = e.responsavel || '';
+    document.getElementById('emp-form-telefone').value = e.telefone || '';
+    document.getElementById('emp-form-whatsapp').value = e.whatsapp || '';
+    document.getElementById('emp-form-instagram').value = e.instagram || '';
+    document.getElementById('emp-form-site').value = e.site || '';
+    document.getElementById('emp-form-cidade').value = e.cidade || '';
+    document.getElementById('emp-form-status').value = e.status || 'Prospect';
+    document.getElementById('emp-form-obs').value = e.obs || '';
+    document.getElementById('emp-delete-btn').classList.remove('hidden');
+  } else {
+    document.getElementById('emp-modal-title').textContent = 'Nova Empresa';
+    document.getElementById('emp-form-id').value = '';
+  }
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function closeEmpresaModal() {
+  document.getElementById('empresa-modal').classList.add('hidden');
+}
+
+function saveEmpresa(event) {
+  event.preventDefault();
+  const id = document.getElementById('emp-form-id').value;
+  const data = {
+    nome: document.getElementById('emp-form-nome').value.trim(),
+    nicho: document.getElementById('emp-form-nicho').value.trim(),
+    responsavel: document.getElementById('emp-form-responsavel').value.trim(),
+    telefone: document.getElementById('emp-form-telefone').value.trim(),
+    whatsapp: document.getElementById('emp-form-whatsapp').value.trim(),
+    instagram: document.getElementById('emp-form-instagram').value.trim(),
+    site: document.getElementById('emp-form-site').value.trim(),
+    cidade: document.getElementById('emp-form-cidade').value.trim(),
+    status: document.getElementById('emp-form-status').value,
+    obs: document.getElementById('emp-form-obs').value.trim(),
+  };
+  if (id) {
+    const idx = empresas.findIndex(x => x.id === id);
+    if (idx !== -1) {
+      empresas[idx] = { ...empresas[idx], ...data, updatedAt: new Date().toISOString() };
+      addEmpTimelineEvent(id, 'edit', 'Dados da empresa atualizados');
+    }
+  } else {
+    const novo = { ...data, id: 'emp_' + Date.now(), campanhas: [], empLeads: [], erros: [], timeline: [], insights: '', obs: data.obs, createdAt: new Date().toISOString() };
+    novo.timeline = [{ id: 'tl_' + Date.now(), tipo: 'criação', desc: 'Empresa cadastrada no sistema', data: new Date().toISOString() }];
+    empresas.push(novo);
+  }
+  saveEmpresas();
+  closeEmpresaModal();
+  if (currentEmpresaId === id && id) {
+    openEmpresaDetail(id);
+  } else {
+    renderEmpresas();
+  }
+  showToast(id ? 'Empresa atualizada!' : 'Empresa criada!', 'success');
+}
+
+function deleteEmpresa() {
+  const id = document.getElementById('emp-form-id').value;
+  if (!id) return;
+  if (!confirm('Excluir esta empresa? Todos os dados serão perdidos.')) return;
+  empresas = empresas.filter(x => x.id !== id);
+  saveEmpresas();
+  closeEmpresaModal();
+  closeEmpresaDetail();
+  renderEmpresas();
+  showToast('Empresa excluída', 'success');
+}
+
+// ── Empresa Detail Overlay ──
+function openEmpresaDetail(id) {
+  const e = empresas.find(x => x.id === id);
+  if (!e) return;
+  currentEmpresaId = id;
+  currentEmpTab = 'dashboard';
+
+  const initials = e.nome.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const color = empStatusColor(e.status);
+
+  document.getElementById('emp-det-initials').textContent = initials;
+  document.getElementById('emp-det-initials').style.color = color;
+  document.getElementById('emp-det-nome').textContent = e.nome;
+  document.getElementById('emp-det-nicho').textContent = e.nicho || '';
+  document.getElementById('emp-det-cidade').textContent = e.cidade || '';
+  const dot = document.getElementById('emp-det-cidade-dot');
+  if (dot) dot.classList.toggle('hidden', !e.nicho || !e.cidade);
+
+  const statusEl = document.getElementById('emp-det-status');
+  statusEl.textContent = e.status;
+  statusEl.style.cssText = `color:${color};background:${color}18;font-size:10px;font-weight:600;padding:2px 8px;border-radius:9999px;`;
+
+  const waBtn = document.getElementById('emp-det-wa-btn');
+  const igBtn = document.getElementById('emp-det-ig-btn');
+  const siteBtn = document.getElementById('emp-det-site-btn');
+  if (e.whatsapp) {
+    const num = e.whatsapp.replace(/\D/g,'');
+    waBtn.style.display = '';
+    waBtn.onclick = () => window.open(`https://wa.me/55${num}`,'_blank');
+  } else { waBtn.style.display = 'none'; }
+  if (e.instagram) {
+    const handle = e.instagram.replace('@','');
+    igBtn.style.display = '';
+    igBtn.onclick = () => window.open(`https://instagram.com/${handle}`,'_blank');
+  } else { igBtn.style.display = 'none'; }
+  if (e.site) {
+    siteBtn.style.display = '';
+    siteBtn.onclick = () => window.open(e.site.startsWith('http') ? e.site : 'https://'+e.site,'_blank');
+  } else { siteBtn.style.display = 'none'; }
+
+  document.getElementById('empresa-detail-overlay').classList.remove('hidden');
+  setEmpTab('dashboard');
+  lucide.createIcons();
+}
+
+function closeEmpresaDetail() {
+  document.getElementById('empresa-detail-overlay').classList.add('hidden');
+  currentEmpresaId = null;
+}
+
+// ── Empresa Tabs ──
+function setEmpTab(tab) {
+  currentEmpTab = tab;
+  document.querySelectorAll('.emp-tab-btn').forEach(btn => {
+    btn.classList.remove('active-emp-tab');
+    btn.classList.add('text-[#555]');
+  });
+  const active = document.getElementById('emp-tab-btn-' + tab);
+  if (active) {
+    active.classList.add('active-emp-tab');
+    active.classList.remove('text-[#555]');
+  }
+  renderEmpTab(tab);
+}
+
+function renderEmpTab(tab) {
+  const content = document.getElementById('emp-det-content');
+  if (!content) return;
+  const e = empresas.find(x => x.id === currentEmpresaId);
+  if (!e) return;
+  switch (tab) {
+    case 'dashboard':  content.innerHTML = renderEmpDashboard(e); break;
+    case 'campanhas':  content.innerHTML = renderEmpCampanhas(e); break;
+    case 'leads':      content.innerHTML = renderEmpLeadsHTML(e); break;
+    case 'timeline':   content.innerHTML = renderEmpTimeline(e); break;
+    case 'erros':      content.innerHTML = renderEmpErrosHTML(e); break;
+    case 'insights':   content.innerHTML = renderEmpInsights(e); break;
+    case 'obs':        content.innerHTML = renderEmpObs(e); break;
+  }
+  lucide.createIcons();
+}
+
+function renderEmpDashboard(e) {
+  const campanhas = e.campanhas || [];
+  const empLeads = e.empLeads || [];
+  const erros = e.erros || [];
+  const totalLeads = campanhas.reduce((s,c) => s+(parseInt(c.leads)||0), 0);
+  const totalReunioes = campanhas.reduce((s,c) => s+(parseInt(c.reunioes)||0), 0);
+  const totalFechados = campanhas.reduce((s,c) => s+(parseInt(c.fechados)||0), 0);
+  const taxa = totalLeads > 0 ? ((totalFechados/totalLeads)*100).toFixed(1) : '0';
+  const stats = [
+    { label: 'Campanhas', value: campanhas.length, icon: 'megaphone', color: '#a78bfa' },
+    { label: 'Leads gerados', value: totalLeads, icon: 'users', color: '#60a5fa' },
+    { label: 'Reuniões', value: totalReunioes, icon: 'calendar', color: '#fbbf24' },
+    { label: 'Fechamentos', value: totalFechados, icon: 'check-circle', color: '#4ade80' },
+    { label: 'Taxa conversão', value: taxa + '%', icon: 'trending-up', color: '#f472b6' },
+    { label: 'Erros registrados', value: erros.length, icon: 'alert-circle', color: erros.length ? '#f87171' : '#555' },
+  ];
+  const statsHTML = stats.map(s => `
+    <div class="bg-[#111] border border-[#1a1a1a] rounded-xl p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="${s.icon}" class="w-4 h-4" style="color:${s.color}"></i>
+        <span class="text-xs text-[#444]">${s.label}</span>
+      </div>
+      <p class="text-2xl font-black" style="color:${s.color}">${s.value}</p>
+    </div>`).join('');
+
+  const lastCamp = [...campanhas].sort((a,b) => new Date(b.data||0)-new Date(a.data||0)).slice(0,3);
+  const campsHTML = lastCamp.length ? lastCamp.map(c => {
+    const color = c.status==='Ativa'?'#4ade80':c.status==='Pausada'?'#fbbf24':'#555';
+    return `<div class="flex items-center justify-between py-2 border-b border-[#111] last:border-0">
+      <div>
+        <p class="text-sm text-white font-medium">${escHtml(c.nome)}</p>
+        <p class="text-xs text-[#444]">${c.leads||0} leads · ${c.reunioes||0} reuniões · ${c.fechados||0} fechados</p>
+      </div>
+      <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" style="color:${color};background:${color}18">${c.status}</span>
+    </div>`;
+  }).join('') : '<p class="text-xs text-[#333] py-4 text-center">Nenhuma campanha ainda</p>';
+
+  const contato = [
+    e.telefone ? `<a href="tel:${escHtml(e.telefone)}" class="text-xs text-[#555] hover:text-white transition-colors">${escHtml(e.telefone)}</a>` : '',
+    e.whatsapp ? `<span class="text-xs text-[#555]">${escHtml(e.whatsapp)} (WA)</span>` : '',
+    e.responsavel ? `<span class="text-xs text-[#555]">${escHtml(e.responsavel)}</span>` : '',
+  ].filter(Boolean).join('<span class="text-[#222] mx-1">·</span>');
+
+  return `<div class="max-w-4xl mx-auto space-y-6">
+    ${contato ? `<div class="flex items-center gap-2 flex-wrap">${contato}</div>` : ''}
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">${statsHTML}</div>
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-white">Campanhas recentes</h3>
+        <button onclick="setEmpTab('campanhas')" class="text-xs text-[#444] hover:text-white transition-colors">Ver todas →</button>
+      </div>
+      <div class="bg-[#111] border border-[#1a1a1a] rounded-xl p-4">${campsHTML}</div>
+    </div>
+    ${e.obs ? `<div class="bg-[#111] border border-[#1a1a1a] rounded-xl p-4"><p class="text-xs text-[#555] font-semibold uppercase tracking-wider mb-2">Observações</p><p class="text-sm text-[#888] leading-relaxed">${escHtml(e.obs)}</p></div>` : ''}
+  </div>`;
+}
+
+function renderEmpCampanhas(e) {
+  const campanhas = e.campanhas || [];
+  return `<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-sm font-semibold text-white">${campanhas.length} Campanha${campanhas.length!==1?'s':''}</h3>
+      <button onclick="openCampanhaModal()" class="btn-primary flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nova Campanha
+      </button>
+    </div>
+    ${campanhas.length === 0 ? `<div class="text-center py-16">
+      <i data-lucide="megaphone" class="w-10 h-10 text-[#222] mx-auto mb-3"></i>
+      <p class="text-[#444] text-sm">Nenhuma campanha cadastrada</p>
+    </div>` : campanhas.map((c,i) => {
+      const color = c.status==='Ativa'?'#4ade80':c.status==='Pausada'?'#fbbf24':'#555';
+      const total = parseInt(c.leads)||0;
+      const taxa = total>0?Math.round(((parseInt(c.fechados)||0)/total)*100):0;
+      return `<div class="bg-[#111] border border-[#1a1a1a] rounded-xl p-5 mb-3">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h4 class="text-sm font-semibold text-white">${escHtml(c.nome)}</h4>
+            ${c.data?`<p class="text-xs text-[#444] mt-0.5">Início: ${new Date(c.data+'T12:00:00').toLocaleDateString('pt-BR')}</p>`:''}
+            ${c.desc?`<p class="text-xs text-[#555] mt-1">${escHtml(c.desc)}</p>`:''}
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" style="color:${color};background:${color}18">${c.status}</span>
+            <button onclick="openCampanhaModal('${c.id}')" class="action-btn p-1.5 rounded-lg text-[#444] hover:text-white"><i data-lucide="pencil" class="w-3 h-3"></i></button>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="bg-[#0d0d0d] rounded-lg p-3"><p class="text-lg font-black text-[#60a5fa]">${c.leads||0}</p><p class="text-[10px] text-[#444]">Leads</p></div>
+          <div class="bg-[#0d0d0d] rounded-lg p-3"><p class="text-lg font-black text-[#fbbf24]">${c.reunioes||0}</p><p class="text-[10px] text-[#444]">Reuniões</p></div>
+          <div class="bg-[#0d0d0d] rounded-lg p-3"><p class="text-lg font-black text-[#4ade80]">${c.fechados||0}</p><p class="text-[10px] text-[#444]">Fechados</p></div>
+        </div>
+        ${total>0?`<div class="mt-3"><div class="flex justify-between text-xs text-[#444] mb-1"><span>Taxa de conversão</span><span>${taxa}%</span></div><div class="h-1 bg-[#1a1a1a] rounded-full"><div class="h-1 bg-[#4ade80] rounded-full progress-bar" style="width:${taxa}%"></div></div></div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderEmpLeadsHTML(e) {
+  const list = (e.empLeads || []);
+  return `<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-sm font-semibold text-white">${list.length} Lead${list.length!==1?'s':''} vinculados</h3>
+    </div>
+    ${list.length === 0 ? `<div class="text-center py-16 text-[#333]">
+      <i data-lucide="users" class="w-10 h-10 mx-auto mb-3"></i>
+      <p class="text-sm">Nenhum lead vinculado a esta empresa</p>
+      <p class="text-xs mt-1">Leads adicionados via modal de empresa aparecerão aqui</p>
+    </div>` : list.map(l => {
+      const color = { 'Novo':'#60a5fa','Contatado':'#a78bfa','Reunião marcada':'#fbbf24','Convertido':'#4ade80','Perdido':'#f87171','Sem resposta':'#555' }[l.status]||'#555';
+      return `<div class="flex items-center justify-between py-3 border-b border-[#111]">
+        <div>
+          <p class="text-sm text-white font-medium">${escHtml(l.empresa||l.nome||'—')}</p>
+          ${l.nicho?`<p class="text-xs text-[#444]">${escHtml(l.nicho)}</p>`:''}
+        </div>
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" style="color:${color};background:${color}18">${l.status}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderEmpTimeline(e) {
+  const events = (e.timeline || []).sort((a,b) => new Date(b.data)-new Date(a.data));
+  const typeConfig = {
+    'criação':   { color:'#a78bfa', icon:'sparkles' },
+    'edit':      { color:'#60a5fa', icon:'pencil' },
+    'campanha':  { color:'#fbbf24', icon:'megaphone' },
+    'erro':      { color:'#f87171', icon:'alert-circle' },
+    'nota':      { color:'#4ade80', icon:'file-text' },
+    'contato':   { color:'#f472b6', icon:'phone' },
+  };
+  return `<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-sm font-semibold text-white">Timeline da empresa</h3>
+      <button onclick="addEmpContato()" class="text-xs text-[#444] hover:text-white transition-colors px-3 py-2 rounded-lg border border-[#1a1a1a] hover:border-[#333]">
+        + Registrar contato
+      </button>
+    </div>
+    ${events.length === 0 ? `<div class="text-center py-16 text-[#333]">
+      <i data-lucide="clock" class="w-10 h-10 mx-auto mb-3"></i>
+      <p class="text-sm">Nenhum evento na timeline</p>
+    </div>` : `<div class="relative pl-8">
+      <div class="absolute left-3 top-0 bottom-0 w-px bg-[#1a1a1a]"></div>
+      ${events.map(ev => {
+        const cfg = typeConfig[ev.tipo] || { color:'#555', icon:'circle' };
+        const date = ev.data ? new Date(ev.data).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+        return `<div class="relative mb-5">
+          <div class="absolute -left-8 top-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center" style="border-color:${cfg.color};background:#080808">
+            <i data-lucide="${cfg.icon}" class="w-2.5 h-2.5" style="color:${cfg.color}"></i>
+          </div>
+          <div class="bg-[#111] border border-[#1a1a1a] rounded-xl p-4">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-semibold uppercase tracking-wider" style="color:${cfg.color}">${ev.tipo}</span>
+              <span class="text-[10px] text-[#333]">${date}</span>
+            </div>
+            <p class="text-sm text-[#888]">${escHtml(ev.desc)}</p>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  </div>`;
+}
+
+function addEmpContato() {
+  const desc = prompt('Descreva o contato realizado:');
+  if (!desc || !desc.trim()) return;
+  addEmpTimelineEvent(currentEmpresaId, 'contato', desc.trim());
+  renderEmpTab('timeline');
+  showToast('Contato registrado!', 'success');
+}
+
+function addEmpTimelineEvent(empresaId, tipo, desc) {
+  const e = empresas.find(x => x.id === empresaId);
+  if (!e) return;
+  if (!e.timeline) e.timeline = [];
+  e.timeline.push({ id: 'tl_' + Date.now(), tipo, desc, data: new Date().toISOString() });
+  saveEmpresas();
+}
+
+function renderEmpErrosHTML(e) {
+  const erros = e.erros || [];
+  return `<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-sm font-semibold text-white">${erros.length} Erro${erros.length!==1?'s':''} registrado${erros.length!==1?'s':''}</h3>
+      <button onclick="addEmpErro()" class="btn-primary flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Registrar Erro
+      </button>
+    </div>
+    ${erros.length === 0 ? `<div class="text-center py-16 text-[#333]">
+      <i data-lucide="check-circle" class="w-10 h-10 mx-auto mb-3 text-[#4ade80]/30"></i>
+      <p class="text-sm">Nenhum erro registrado</p>
+      <p class="text-xs mt-1 text-[#2a2a2a]">Ótimo trabalho!</p>
+    </div>` : erros.map(err => {
+      const color = err.tipo==='crítico'?'#f87171':err.tipo==='recorrente'?'#fbbf24':'#a78bfa';
+      const date = err.data ? new Date(err.data).toLocaleDateString('pt-BR') : '';
+      return `<div class="bg-[#111] border border-[#1a1a1a] rounded-xl p-4 mb-3 border-l-2" style="border-left-color:${color}">
+        <div class="flex items-start justify-between mb-2">
+          <span class="text-[10px] font-semibold uppercase tracking-wider" style="color:${color}">${err.tipo}</span>
+          <span class="text-[10px] text-[#333]">${date}</span>
+        </div>
+        <p class="text-sm text-[#888] leading-relaxed">${escHtml(err.desc)}</p>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function addEmpErro() {
+  const desc = prompt('Descreva o erro ocorrido:');
+  if (!desc || !desc.trim()) return;
+  const tipos = ['padrão', 'recorrente', 'crítico'];
+  const tipoStr = prompt('Tipo do erro:\n1 - Padrão\n2 - Recorrente\n3 - Crítico\n\nDigite 1, 2 ou 3:');
+  const tipo = tipos[(parseInt(tipoStr)||1)-1] || 'padrão';
+  const e = empresas.find(x => x.id === currentEmpresaId);
+  if (!e) return;
+  if (!e.erros) e.erros = [];
+  e.erros.push({ id: 'err_' + Date.now(), tipo, desc: desc.trim(), data: new Date().toISOString() });
+  addEmpTimelineEvent(currentEmpresaId, 'erro', desc.trim());
+  saveEmpresas();
+  renderEmpTab('erros');
+  showToast('Erro registrado!', 'success');
+}
+
+function renderEmpInsights(e) {
+  return `<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-sm font-semibold text-white">Insights & Aprendizados</h3>
+      <button onclick="saveEmpInsights()" class="btn-primary px-4 py-2 rounded-lg text-xs font-semibold">Salvar</button>
+    </div>
+    <div class="space-y-5">
+      <div>
+        <label class="text-xs text-[#444] font-semibold uppercase tracking-wider block mb-2">O que funcionou</label>
+        <textarea id="emp-ins-funcionou" rows="4" placeholder="Abordagens, mensagens, ofertas que geraram resultado..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none">${escHtml((e.insights_funcionou)||'')}</textarea>
+      </div>
+      <div>
+        <label class="text-xs text-[#444] font-semibold uppercase tracking-wider block mb-2">O que não funcionou</label>
+        <textarea id="emp-ins-naofuncionou" rows="4" placeholder="Estratégias que falharam, objeções recorrentes..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none">${escHtml((e.insights_naofuncionou)||'')}</textarea>
+      </div>
+      <div>
+        <label class="text-xs text-[#444] font-semibold uppercase tracking-wider block mb-2">Próximas ações</label>
+        <textarea id="emp-ins-acoes" rows="4" placeholder="O que fazer na próxima semana com esta empresa..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none">${escHtml((e.insights_acoes)||'')}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function saveEmpInsights() {
+  const e = empresas.find(x => x.id === currentEmpresaId);
+  if (!e) return;
+  e.insights_funcionou = document.getElementById('emp-ins-funcionou')?.value || '';
+  e.insights_naofuncionou = document.getElementById('emp-ins-naofuncionou')?.value || '';
+  e.insights_acoes = document.getElementById('emp-ins-acoes')?.value || '';
+  saveEmpresas();
+  showToast('Insights salvos!', 'success');
+}
+
+function renderEmpObs(e) {
+  return `<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-sm font-semibold text-white">Observações gerais</h3>
+      <button onclick="saveEmpObs()" class="btn-primary px-4 py-2 rounded-lg text-xs font-semibold">Salvar</button>
+    </div>
+    <textarea id="emp-obs-textarea" rows="16" placeholder="Anotações livres sobre esta empresa, histórico de conversas, perfil do responsável, objeções recorrentes..." class="input-field w-full text-sm px-4 py-3 rounded-xl resize-none">${escHtml(e.obs||'')}</textarea>
+  </div>`;
+}
+
+function saveEmpObs() {
+  const e = empresas.find(x => x.id === currentEmpresaId);
+  if (!e) return;
+  e.obs = document.getElementById('emp-obs-textarea')?.value || '';
+  saveEmpresas();
+  showToast('Observações salvas!', 'success');
+}
+
+// ── Campanha Modal ──
+function openCampanhaModal(campId) {
+  const modal = document.getElementById('campanha-modal');
+  const form = document.getElementById('campanha-form');
+  form.reset();
+  if (campId) {
+    const e = empresas.find(x => x.id === currentEmpresaId);
+    const c = (e?.campanhas||[]).find(x => x.id === campId);
+    if (!c) return;
+    document.getElementById('camp-modal-title').textContent = 'Editar Campanha';
+    document.getElementById('camp-form-id').value = c.id;
+    document.getElementById('camp-form-nome').value = c.nome || '';
+    document.getElementById('camp-form-status').value = c.status || 'Ativa';
+    document.getElementById('camp-form-data').value = c.data || '';
+    document.getElementById('camp-form-desc').value = c.desc || '';
+    document.getElementById('camp-form-leads').value = c.leads || '';
+    document.getElementById('camp-form-reunioes').value = c.reunioes || '';
+    document.getElementById('camp-form-fechados').value = c.fechados || '';
+  } else {
+    document.getElementById('camp-modal-title').textContent = 'Nova Campanha';
+    document.getElementById('camp-form-id').value = '';
+  }
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function closeCampanhaModal() {
+  document.getElementById('campanha-modal').classList.add('hidden');
+}
+
+function saveCampanha(event) {
+  event.preventDefault();
+  const e = empresas.find(x => x.id === currentEmpresaId);
+  if (!e) return;
+  if (!e.campanhas) e.campanhas = [];
+  const id = document.getElementById('camp-form-id').value;
+  const data = {
+    nome: document.getElementById('camp-form-nome').value.trim(),
+    status: document.getElementById('camp-form-status').value,
+    data: document.getElementById('camp-form-data').value,
+    desc: document.getElementById('camp-form-desc').value.trim(),
+    leads: parseInt(document.getElementById('camp-form-leads').value) || 0,
+    reunioes: parseInt(document.getElementById('camp-form-reunioes').value) || 0,
+    fechados: parseInt(document.getElementById('camp-form-fechados').value) || 0,
+  };
+  if (id) {
+    const idx = e.campanhas.findIndex(x => x.id === id);
+    if (idx !== -1) e.campanhas[idx] = { ...e.campanhas[idx], ...data };
+  } else {
+    e.campanhas.push({ ...data, id: 'camp_' + Date.now() });
+    addEmpTimelineEvent(currentEmpresaId, 'campanha', `Campanha "${data.nome}" criada`);
+  }
+  saveEmpresas();
+  closeCampanhaModal();
+  renderEmpTab('campanhas');
+  showToast(id ? 'Campanha atualizada!' : 'Campanha criada!', 'success');
+}
+
+function deleteCampanha(campId) {
+  const e = empresas.find(x => x.id === currentEmpresaId);
+  if (!e) return;
+  if (!confirm('Excluir esta campanha?')) return;
+  e.campanhas = (e.campanhas||[]).filter(x => x.id !== campId);
+  saveEmpresas();
+  renderEmpTab('campanhas');
+  showToast('Campanha excluída', 'success');
+}
+
+// ============================================================
 //  KEYBOARD SHORTCUTS
 // ============================================================
 document.addEventListener('keydown', e => {
@@ -2745,6 +3562,8 @@ document.addEventListener('keydown', e => {
     closeLeadModal();
     closeDetailModal();
     closeNoteModal();
+    closeEmpresaModal();
+    closeCampanhaModal();
   }
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault();
